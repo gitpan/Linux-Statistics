@@ -1,6 +1,8 @@
 MANIFEST
-Makefile.PL
-README
 Statistics.3
-Statistics.pm
+README
+Makefile.PL
+MANIFEST
 test.pl
+Statistics.pm
+ChangeLog

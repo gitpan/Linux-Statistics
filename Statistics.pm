@@ -6,17 +6,21 @@ Linux::Statistics - collect system statistics
 
 use Linux::Statistics;
 
-$stats = getStats( SysInfo   => 1,
-                   ProcStats => 1,
-                   MemStats  => 1,
-                   PgSwStats => 1,
-                   NetStats  => 1,
-                   SockStats => 1,
-                   DiskStats => 1,
-                   DiskUsage => 1,
-                   LoadAVG   => 1,
-                   Processes => 1,
-                   TimePoint => 1 );
+$obj = Linux::Statistics->new( SysInfo   => 1,
+                               ProcStats => 1,
+                               MemStats  => 1,
+                               PgSwStats => 1,
+                               NetStats  => 1,
+                               SockStats => 1,
+                               DiskStats => 1,
+                               DiskUsage => 1,
+                               LoadAVG   => 1,
+                               Processes => 1,
+                               TimePoint => 1 );
+
+sleep($sec);
+
+$stats = $obj->getStats;
 
 =head1 DESCRIPTION
 
@@ -26,6 +30,17 @@ distributions SuSE, SLES (s390 and s390x), Red Hat, Debian and Mandrake on kerne
 2.4 and 2.6 but it should also running on other linux distributions with the same kernel
 release number. To run this module it is necessary to start it as root or another user
 with the authorization to read the /proc filesystem and the /etc/passwd file.
+
+=head2 NOTE THAT ...
+
+it is necessary to sleep for at least of one second between the calls of new() and getStats(),
+if you want to get useful statistics for ProcStats, NetStats, DiskStats and PgSwStats. If you
+start some statistics for ProcStats you should do that in any case, otherwise you can get a
+message like this:
+
+Illegal division by zero at ...
+
+The reason is that this statistics are deltas since the last time that the new method was called.
 
 =head1 OPTIONS
 
@@ -106,7 +121,7 @@ Generated from I</proc/net/dev>.
    NetTxCarr             -  Number of carrier errors that happend per second on transmitted packets.
    NetTxCompr            -  Number of compressed packets transmitted per second.
 
-=head2 NetSumStats
+=head2 NetStatsSum
 
    This are just some summaries of NetStats.
 
@@ -135,16 +150,16 @@ Generated from I</proc/diskstats> or I</proc/partitions>.
    DiskTotalRequests     -  Total number of requests were made per second from/to physical disk.
    DiskTotalBytes        -  Total number of bytes transmitted per second from/to physical disk.
 
-=head2 DiskSumStats
+=head2 DiskStatsSum
 
    This are just some summaries of DiskStats.
 
-   DiskSumReadRequests   -  Total number of read requests were made per second to all physical disks.
-   DiskSumReadBytes      -  Total number of bytes reads per second from all physical disks.
-   DiskSumWriteRequests  -  Total number of write requests were made per second to all physical disks.
-   DiskSumWriteBytes     -  Total number of bytes written per second to all physical disks.
-   DiskSumRequests       -  Total number of requests were made per second from/to all physical disks.
-   DiskSumBytes          -  Total number of bytes transmitted per second from/to all physical disks.
+   DiskReadRequests      -  Total number of read requests were made per second to all physical disks.
+   DiskReadBytes         -  Total number of bytes reads per second from all physical disks.
+   DiskWriteRequests     -  Total number of write requests were made per second to all physical disks.
+   DiskWriteBytes        -  Total number of bytes written per second to all physical disks.
+   DiskRequests          -  Total number of requests were made per second from/to all physical disks.
+   DiskBytes             -  Total number of bytes transmitted per second from/to all physical disks.
 
 =head2 DiskUsage
 
@@ -155,7 +170,6 @@ Generated with I</bin/df -k>.
    DiskU_Free            -  The free disk space in kilobytes.
    DiskU_UsagePro        -  The used disk space in percent.
    DiskU_MountPoint      -  The moint point of the disk.
-   DiskU_Name            -  The disk name.
 
 =head2 LoadAVG
 
@@ -218,16 +232,18 @@ Generated with I<localtime(time)>.
          use strict;
          use Linux::Statistics;
 
-         my $stats = getStats( ProcStats => 1 );
+         my $obj   = Linux::Statistics->new( ProcStats => 1 );
+         sleep(1);
+         my $stats = $obj->getStats;
 
          print "Report/Statistic for ProcStats\n";
-         print "  ProcUser      $stats->{'ProcStats'}->{'ProcUser'}\n";
-         print "  ProcNice      $stats->{'ProcStats'}->{'ProcNice'}\n";
-         print "  ProcSystem    $stats->{'ProcStats'}->{'ProcSystem'}\n";
-         print "  ProcIdle      $stats->{'ProcStats'}->{'ProcIdle'}\n";
-         print "  ProcIOWait    $stats->{'ProcStats'}->{'ProcIOWait'}\n";
-         print "  ProcTotal     $stats->{'ProcStats'}->{'ProcTotal'}\n";
-         print "  ProcNew       $stats->{'ProcStats'}->{'ProcNew'}\n";
+         print "  ProcUser      $stats->{ProcStats}->{ProcUser}\n";
+         print "  ProcNice      $stats->{ProcStats}->{ProcNice}\n";
+         print "  ProcSystem    $stats->{ProcStats}->{ProcSystem}\n";
+         print "  ProcIdle      $stats->{ProcStats}->{ProcIdle}\n";
+         print "  ProcIOWait    $stats->{ProcStats}->{ProcIOWait}\n";
+         print "  ProcTotal     $stats->{ProcStats}->{ProcTotal}\n";
+         print "  ProcNew       $stats->{ProcStats}->{ProcNew}\n";
 
 =head4 Or this:
 
@@ -235,19 +251,20 @@ Generated with I<localtime(time)>.
          use strict;
          use Linux::Statistics;
 
-         my $stats = getStats( NetStats => 1 );
+         my $obj   = Linux::Statistics->new( NetStats => 1 );
+         my $stats = $obj->getStats;
 
-         foreach my $device (keys %{$stats->{'NetStats'}}) {
+         foreach my $device (keys %{$stats->{NetStats}}) {
             print "Statistics for device $device ...\n";
 
-            while (my ($key,$value) = each %{$stats->{'NetStats'}->{$device}}) {
+            while (my ($key,$value) = each %{$stats->{NetStats}->{$device}}) {
                print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\n";
             }
          }
 
          print "\nTotal network statistics ...\n";
 
-         while (my ($key,$value) = each %{$stats->{'NetSumStats'}}) {
+         while (my ($key,$value) = each %{$stats->{NetStatsSum}}) {
             print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\n";
          }
 
@@ -257,15 +274,16 @@ Generated with I<localtime(time)>.
          use strict;
          use Linux::Statistics;
 
-         my $stats = getStats( Processes => 1 );
+         my $obj   = Linux::Statistics->new( Processes => 1 );
+         my $stats = $obj->getStats;
 
          # print a formated header
 
          print "$_". ' ' x (12-length($_)) for qw/PID PPID OWNER STATE SIZE VSIZE COMMAND/;
          print "\n";
 
-         foreach my $pid (keys %{$stats->{'Processes'}}) {
-            print "$stats->{'Processes'}->{$pid}->{$_}". ' ' x (12-length($stats->{'Processes'}->{$pid}->{$_}))
+         foreach my $pid (keys %{$stats->{Processes}}) {
+            print "$stats->{Processes}->{$pid}->{$_}". ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
                for qw/sProcPid sProcPPid sProcOwner sProcState sProcSize sProcVSize sProcCMDLINE/;
             print "\n";
          }
@@ -286,7 +304,8 @@ Generated with I<localtime(time)>.
          TimePoint => 1
       };
 
-      $stats = getStats( $options );
+      $obj   = Linux::Statistics->new( $options );
+      $stats = $obj->getStats;
 
 =head4 If you're not sure you can use the the Data::Dumper module to learn more about the hash structure.
 
@@ -295,7 +314,8 @@ Generated with I<localtime(time)>.
          use Linux::Statistics;
          use Data::Dumper;
 
-         my $stats = getStats( Processes => 1 );
+         my $obj   = Linux::Statistics->new( Processes => 1 );
+         my $stats = $obj->getStats;
 
          print Dumper($stats);
 
@@ -323,8 +343,8 @@ package Linux::Statistics;
 use strict;
 require Exporter;
 our @ISA     = qw(Exporter);
-our @EXPORT  = qw(getStats);
-our $VERSION = '1.00';
+our @EXPORT  = qw(new getStats);
+our $VERSION = '1.01';
 
 # Disk statictics are since 2.4 kernel found in /proc/partitions, but since
 # kernel 2.6 this statistics are now in /proc/diskstats. Further the paging
@@ -357,106 +377,91 @@ my %file = (
 
 my $block_size = 512;
 
-# This function collects all statistic informations and return the data as a hash reference.
-
-sub getStats {
-
+sub new {
+   my $class = shift;
    my %param;
 
    if (ref $_[0] eq 'HASH') {
-      %param = %{$_[0]};
+      $param{options} = $_[0];
    }
    elsif (@_ & 1) {
       die 'Statistics: not enough arguments ...';
    }
    else {
-      %param = @_;
+      $param{options} = {@_};
    }
 
-   my $t_stats = {};
-   my $stats   = {};
+   for my $key (keys %{$param{options}}) {
+      die "Statistics: invalid argument $key"
+         unless $key =~ /^(SysInfo|ProcStats|MemStats|PgSwStats|NetStats|SockStats|DiskStats|DiskUsage|LoadAVG|Processes|TimePoint)$/;
+      no strict 'refs';
+      $param{t_stats}{$key} = &$key() if $key =~ /^(ProcStats|PgSwStats)$/;
+      ($param{t_stats}{$key},$param{t_stats}{"${key}Sum"}) = &$key() if $key =~ /^(NetStats|DiskStats)$/;
+   }
+   
+   my $self = bless(\%param,$class);
+   
+   return $self;
+}
+
+# This function collects all statistic informations and return the data as a hash reference.
+
+sub getStats {
+   my $param = shift;
+   my $class = shift;
+   my $stats = {};
 
    # set a time stamp for the statistics
 
-   if ($param{'TimePoint'}) {
+   if ($param->{options}->{TimePoint}) {
       my @tm = (localtime)[reverse 0..5];
 
       $tm[0] += 1900;
       $tm[1]++;
 
-      $stats->{'TimePoint'}->{'Time'} = sprintf '%02d:%02d:%02d', @tm[0..2];
-      $stats->{'TimePoint'}->{'Date'} = sprintf '%04d-%02d-%02d', @tm[3..5];
+      $stats->{TimePoint}->{Time} = sprintf '%02d:%02d:%02d', @tm[0..2];
+      $stats->{TimePoint}->{Date} = sprintf '%04d-%02d-%02d', @tm[3..5];
    }
 
    # get the statistics
 
-   foreach my $opt (qw/SysInfo MemStats SockStats DiskUsage LoadAVG Processes/) {
+   for my $opt (qw/SysInfo MemStats SockStats DiskUsage LoadAVG Processes/) {
       no strict 'refs';
-      $stats->{$opt} = &$opt() if $param{$opt};
+      $stats->{$opt} = &$opt() if $param->{options}->{$opt};
    }
 
-   # some statistics must run twice because the differences are needed
+   for my $opt (qw/ProcStats PgSwStats/) {
+      if ($param->{options}->{$opt}) {
+         { no strict 'refs'; $stats->{$opt} = &$opt(); }
 
-   $t_stats->{'ProcStats'} = ProcStats() if $param{'ProcStats'};
-   $t_stats->{'PgSwStats'} = PgSwStats() if $param{'PgSwStats'};
+         foreach my $x (keys %{$stats->{$opt}}) {
+            $stats->{$opt}->{$x} -= $param->{t_stats}->{$opt}->{$x};
+         }
 
-   ($t_stats->{'NetStats'},$t_stats->{'NetSumStats'})   = NetStats()  if $param{'NetStats'};
-   ($t_stats->{'DiskStats'},$t_stats->{'DiskSumStats'}) = DiskStats() if $param{'DiskStats'};
+         if ($opt eq 'ProcStats') {
+            foreach (qw/ProcUser ProcNice ProcSystem ProcIdle ProcIOWait/) {
+               $stats->{ProcStats}->{$_} = sprintf('%.2f',100 * $stats->{ProcStats}->{$_} / $stats->{ProcStats}->{Uptime});
+            }
 
-   # wait a second until the next step
-
-   sleep(1) if %{$t_stats};
-
-   # now we calculate the difference
-
-   if ($param{'ProcStats'}) {
-      $stats->{'ProcStats'} = ProcStats();
-
-      foreach my $x (keys %{$stats->{'ProcStats'}}) {
-         $stats->{'ProcStats'}->{$x} -= $t_stats->{'ProcStats'}->{$x};
-      }
-
-      foreach (qw/ProcUser ProcNice ProcSystem ProcIdle ProcIOWait/) {
-         $stats->{'ProcStats'}->{$_} = sprintf('%.2f',100 * $stats->{'ProcStats'}->{$_} / $stats->{'ProcStats'}->{'Uptime'});
-      }
-
-      $stats->{'ProcStats'}->{'ProcTotal'} = $stats->{'ProcStats'}->{'ProcUser'} + $stats->{'ProcStats'}->{'ProcNice'} + $stats->{'ProcStats'}->{'ProcSystem'};
-      delete $stats->{'ProcStats'}->{'Uptime'};
-   }
-
-   if ($param{'PgSwStats'}) {
-      $stats->{'PgSwStats'} = PgSwStats();
-
-      foreach my $x (keys %{$stats->{'PgSwStats'}}) {
-         $stats->{'PgSwStats'}->{$x} -= $t_stats->{'PgSwStats'}->{$x};
-      }
-   }
-
-   if ($param{'NetStats'}) {
-      ($stats->{'NetStats'},$stats->{'NetSumStats'}) = NetStats();
-
-      foreach my $x (keys %{$stats->{'NetStats'}}) {
-         foreach my $y (keys %{$stats->{'NetStats'}->{$x}}) {
-            $stats->{'NetStats'}->{$x}->{$y} -= $t_stats->{'NetStats'}->{$x}->{$y};
+            $stats->{ProcStats}->{ProcTotal} = $stats->{ProcStats}->{ProcUser} + $stats->{ProcStats}->{ProcNice} + $stats->{ProcStats}->{ProcSystem};
+            delete $stats->{ProcStats}->{Uptime};
          }
       }
-
-      foreach my $x (keys %{$stats->{'NetSumStats'}}) {
-         $stats->{'NetSumStats'}->{$x} -= $t_stats->{'NetSumStats'}->{$x};
-      }
    }
 
-   if ($param{'DiskStats'}) {
-      ($stats->{'DiskStats'},$stats->{'DiskSumStats'}) = DiskStats();
+   for my $opt (qw/NetStats DiskStats/) {
+      if ($param->{options}->{$opt}) {
+         { no strict 'refs'; ($stats->{$opt},$stats->{"${opt}Sum"}) = &$opt() if $param->{options}->{$opt}; }
 
-      foreach my $x (keys %{$stats->{'DiskStats'}}) {
-         foreach my $y (keys %{$stats->{'DiskStats'}->{$x}}) {
-            $stats->{'DiskStats'}->{$x}->{$y} -= $t_stats->{'DiskStats'}->{$x}->{$y};
+         foreach my $x (keys %{$stats->{$opt}}) {
+            foreach my $y (keys %{$stats->{$opt}->{$x}}) {
+               $stats->{$opt}->{$x}->{$y} -= $param->{t_stats}->{$opt}->{$x}->{$y};
+            }
          }
-      }
 
-      foreach my $x (keys %{$stats->{'DiskSumStats'}}) {
-         $stats->{'DiskSumStats'}->{$x} -= $t_stats->{'DiskSumStats'}->{$x};
+         foreach my $x (keys %{$stats->{"${opt}Sum"}}) {
+            $stats->{"${opt}Sum"}->{$x} -= $param->{t_stats}->{"${opt}Sum"}->{$x};
+         }
       }
    }
 
@@ -466,27 +471,27 @@ sub getStats {
 
 sub SysInfo {
    my %sys;
-   $sys{'SysHostname'} = <FH> if open(FH,"<$file{'hostname'}") or die "Statistics: can't open $file{'hostname'}";
-   $sys{'SysDomain'}   = <FD> if open(FD,"<$file{'domain'}")   or die "Statistics: can't open $file{'domain'}";
-   $sys{'SysKernel'}   = <FK> if open(FK,"<$file{'kernel'}")   or die "Statistics: can't open $file{'kernel'}";
-   $sys{'SysRelease'}  = <FR> if open(FR,"<$file{'release'}")  or die "Statistics: can't open $file{'release'}";
-   $sys{'SysVersion'}  = <FV> if open(FV,"<$file{'version'}")  or die "Statistics: can't open $file{'version'}";
-   my $uptime          = <FU> if open(FU,"<$file{'uptime'}")   or die "Statistics: can't open $file{'uptime'}";
+   $sys{SysHostname} = <FH> if open FH,'<',$file{hostname} or die "Statistics: can't open $file{hostname}";
+   $sys{SysDomain}   = <FD> if open FD,'<',$file{domain}   or die "Statistics: can't open $file{domain}";
+   $sys{SysKernel}   = <FK> if open FK,'<',$file{kernel}   or die "Statistics: can't open $file{kernel}";
+   $sys{SysRelease}  = <FR> if open FR,'<',$file{release}  or die "Statistics: can't open $file{release}";
+   $sys{SysVersion}  = <FV> if open FV,'<',$file{version}  or die "Statistics: can't open $file{version}";
+   my $uptime        = <FU> if open FU,'<',$file{uptime}   or die "Statistics: can't open $file{uptime}";
 
-   open(FM,"<$file{'meminfo'}") or die "Statistics: can't open $file{'meminfo'}\n";
+   open FM,'<',$file{meminfo} or die "Statistics: can't open $file{meminfo}";
 
    while (<FM>) {
       if (/^MemTotal:\s+(\d+ \w+)/) {
-         $sys{'SysMemTotal'} = $1;
+         $sys{SysMemTotal} = $1;
       }
       elsif (/^SwapTotal:\s+(\d+ \w+)/) {
-         $sys{'SysSwapTotal'} = $1;
+         $sys{SysSwapTotal} = $1;
       }
    }
 
    close FM;
 
-   if (open(FS,"<$file{'sysinfo'}")) {
+   if (open FS,'<',$file{sysinfo}) {
       my $ctrlp = ();
       my $type  = ();
 
@@ -497,35 +502,35 @@ sub SysInfo {
 
       close FS;
 
-      open(FC,"<$file{'cpuinfo'}") or die "Statistics: can't open $file{'cpuinfo'}";
+      open FC,'<',$file{cpuinfo} or die "Statistics: can't open $file{cpuinfo}";
 
       while (<FC>) {
-         $sys{'SysCPU_Power'} = "$2 $1" if /^(bogomips per cpu): (\d+)/;
-         $sys{'SysCountCPUs'} = $1      if /^# processors\s+: (\d+)/;
-         $sys{'SysModelName'} = $1      if /^vendor_id\s+: (.*)/;
+         $sys{SysCPU_Power} = "$2 $1" if /^(bogomips per cpu): (\d+)/;
+         $sys{SysCountCPUs} = $1      if /^# processors\s+: (\d+)/;
+         $sys{SysModelName} = $1      if /^vendor_id\s+: (.*)/;
       }
 
-      $sys{'SysModelName'} = "$sys{'SysModelName'}, $type, $ctrlp" if $type && $ctrlp;
+      $sys{SysModelName} = "$sys{SysModelName}, $type, $ctrlp" if $type && $ctrlp;
 
       close FC;
    }
-   elsif (open(FC,"<$file{'cpuinfo'}")) {
-      --$sys{'SysCountCPUs'};
+   elsif (open FC,'<',$file{cpuinfo}) {
+      --$sys{SysCountCPUs};
 
       while (<FC>) {
-         $sys{'SysCountCPUs'}++     if /^processor\s+:/;
-         $sys{'SysModelName'} = $1  if /^model name\s+: (.*)/;
-         $sys{'SysCPU_Cache'} = $1  if /^cache size\s+: (.*)/;
+         $sys{SysCountCPUs}++     if /^processor\s+:/;
+         $sys{SysModelName} = $1  if /^model name\s+: (.*)/;
+         $sys{SysCPU_Cache} = $1  if /^cache size\s+: (.*)/;
 
          if (/^cpu MHz\s+: (.*)/) {
-            if ($sys{'SysCPU_Power'}) {
-               $sys{'SysCPU_Power'} = "$sys{'SysCPU_Power'}, $1 MHz";
+            if ($sys{SysCPU_Power}) {
+               $sys{SysCPU_Power} = "$sys{SysCPU_Power}, $1 MHz";
             }
-            elsif (defined $sys{'SysCPU_Power'}) {
-               $sys{'SysCPU_Power'} = "$1 MHz";
+            elsif (defined $sys{SysCPU_Power}) {
+               $sys{SysCPU_Power} = "$1 MHz";
             }
             else {
-               $sys{'SysCPU_Power'} = 0;
+               $sys{SysCPU_Power} = 0;
             }
          }
       }
@@ -533,7 +538,7 @@ sub SysInfo {
       close FC;
    }
    else {
-      die "Statistics: can't open $file{'sysinfo'} or $file{'cpuinfo'}";
+      die "Statistics: can't open $file{sysinfo} or $file{cpuinfo}";
    }
 
    foreach my $Sec (split / /, $uptime) {
@@ -558,12 +563,12 @@ sub SysInfo {
          $Sec = $Sec % 60;
       }
 
-      unless (defined $sys{'SysUptime'}) {
-         $sys{'SysUptime'} = "${Day}d ${Hour}h ${Min}m ${Sec}s";
+      unless (defined $sys{SysUptime}) {
+         $sys{SysUptime} = "${Day}d ${Hour}h ${Min}m ${Sec}s";
          next;
       }
 
-      $sys{'SysIdleTime'} = "${Day}d ${Hour}h ${Min}m ${Sec}s";
+      $sys{SysIdleTime} = "${Day}d ${Hour}h ${Min}m ${Sec}s";
    }
 
    foreach my $key (keys %sys) {
@@ -578,25 +583,25 @@ sub SysInfo {
 sub ProcStats {
    my %stat;
 
-   open(STAT,"<$file{'stats'}") or die "Statistics: can't open $file{'stats'}";
+   open STAT,'<',$file{stats} or die "Statistics: can't open $file{stats}";
 
    while (<STAT>) {
       if (/^cpu\s+(.*)$/) {
-         ( $stat{'ProcUser'}
-         , $stat{'ProcNice'}
-         , $stat{'ProcSystem'}
-         , $stat{'ProcIdle'}
-         , $stat{'ProcIOWait'}
+         ( $stat{ProcUser}
+         , $stat{ProcNice}
+         , $stat{ProcSystem}
+         , $stat{ProcIdle}
+         , $stat{ProcIOWait}
          ) = split /\s+/, $1;
 
          # ProcIOWait is only set as fifth parameter
          # by kernel versions higher than 2.4
 
-         $stat{'ProcIOWait'} = 0 unless defined $stat{'ProcIOWait'};
-         $stat{'Uptime'} = $stat{'ProcUser'} + $stat{'ProcNice'} + $stat{'ProcSystem'} + $stat{'ProcIdle'} + $stat{'ProcIOWait'};
+         $stat{ProcIOWait} = 0 unless defined $stat{ProcIOWait};
+         $stat{Uptime} = $stat{ProcUser} + $stat{ProcNice} + $stat{ProcSystem} + $stat{ProcIdle} + $stat{ProcIOWait};
       }
-      elsif (/^processes: (\d+)$/) {
-         $stat{'ProcNew'} = $1;
+      elsif (/^processes (.*)/) {
+         $stat{ProcNew} = $1;
       }
    }
 
@@ -608,35 +613,35 @@ sub ProcStats {
 sub MemStats {
    my %mem;
 
-   open(MEM,"<$file{'meminfo'}") or die "Statistics: can't open $file{'meminfo'}";
+   open MEM,'<',$file{meminfo} or die "Statistics: can't open $file{meminfo}";
 
    while (<MEM>) {
       if ( /^MemTotal:(\s+|)(\d+)/ ) {
-         $mem{'MemTotal'} = $2;
+         $mem{MemTotal} = $2;
       }
       elsif ( /^MemFree:(\s+|)(\d+)/ ) {
-         $mem{'MemFree'} = $2;
+         $mem{MemFree} = $2;
       }
       elsif ( /^Buffers:(\s+|)(\d+)/ ) {
-         $mem{'MemBuffers'} = $2;
+         $mem{MemBuffers} = $2;
       }
       elsif ( /^Cached:(\s+|)(\d+)/ ) {
-         $mem{'MemCached'} = $2;
+         $mem{MemCached} = $2;
       }
       elsif ( /^SwapTotal:(\s+|)(\d+)/ ) {
-         $mem{'MemSwapTotal'} = $2;
+         $mem{MemSwapTotal} = $2;
       }
       elsif ( /^SwapFree:(\s+|)(\d+)/ ) {
-         $mem{'MemSwapFree'} = $2;
+         $mem{MemSwapFree} = $2;
       }
    }
 
    close MEM;
 
-   $mem{'MemUsed'}        = sprintf('%u',$mem{'MemTotal'} - $mem{'MemFree'});
-   $mem{'MemUsedPro'}     = sprintf('%.2f',100 * $mem{'MemUsed'} / $mem{'MemTotal'});
-   $mem{'MemSwapUsed'}    = sprintf('%u',$mem{'MemSwapTotal'} - $mem{'MemSwapFree'});
-   $mem{'MemSwapUsedPro'} = sprintf('%.2f',100 * $mem{'MemSwapUsed'} / $mem{'MemSwapTotal'});
+   $mem{MemUsed}        = sprintf('%u',$mem{MemTotal} - $mem{MemFree});
+   $mem{MemUsedPro}     = sprintf('%.2f',100 * $mem{MemUsed} / $mem{MemTotal});
+   $mem{MemSwapUsed}    = sprintf('%u',$mem{MemSwapTotal} - $mem{MemSwapFree});
+   $mem{MemSwapUsedPro} = sprintf('%.2f',100 * $mem{MemSwapUsed} / $mem{MemSwapTotal});
 
    return \%mem;
 }
@@ -644,16 +649,16 @@ sub MemStats {
 sub PgSwStats {
    my %stat;
 
-   open(STAT,"<$file{'stats'}") or die "Statistics: can't open $file{'stats'}\n";
+   open STAT,'<',$file{stats} or die "Statistics: can't open $file{stats}\n";
 
    while (<STAT>) {
       if (/^page (\d+) (\d+)$/) {
-         $stat{'PageIn'}  = $1;
-         $stat{'PageOut'} = $2;
+         $stat{PageIn}  = $1;
+         $stat{PageOut} = $2;
       }
       elsif (/^swap (\d+) (\d+)$/) {
-         $stat{'SwapIn'}  = $1;
-         $stat{'SwapOut'} = $2;
+         $stat{SwapIn}  = $1;
+         $stat{SwapOut} = $2;
       }
    }
 
@@ -662,21 +667,21 @@ sub PgSwStats {
    # if paging and swapping are not found in /proc/stat
    # then let's try a look into /proc/vmstat (since 2.6)
 
-   unless (defined $stat{'MemSwapOut'}) {
-      open(VMSTAT,"<$file{'vmstat'}") or die "Statistics: can't open $file{'vmstat'}";
+   unless (defined $stat{MemSwapOut}) {
+      open VMSTAT,'<',$file{vmstat} or die "Statistics: can't open $file{vmstat}";
 
       while (<VMSTAT>) {
          if (/^pgpgin (\d+)$/) {
-            $stat{'PageIn'} = $1;
+            $stat{PageIn} = $1;
          }
          elsif (/^pgpgout (\d+)$/) {
-            $stat{'PageOut'} = $1;
+            $stat{PageOut} = $1;
          }
          elsif (/^pswpin (\d+)$/) {
-            $stat{'SwapIn'} = $1;
+            $stat{SwapIn} = $1;
          }
          elsif (/^pswpout (\d+)$/) {
-            $stat{'SwapOut'} = $1;
+            $stat{SwapOut} = $1;
          }
       }
 
@@ -689,30 +694,30 @@ sub PgSwStats {
 sub NetStats {
    my (%net,%sum);
 
-   open(NET,"<$file{'netstats'}") or die "Statistics: can't open $file{'netstats'}";
+   open NET,'<',$file{netstats} or die "Statistics: can't open $file{netstats}";
 
    while (<NET>) {
       if (/^(\s+|)(\w+):(\s+|)(.*)/) {
-         ( $net{$2}{'NetRxBytes'}
-         , $net{$2}{'NetRxPackets'}
-         , $net{$2}{'NetRxErrs'}
-         , $net{$2}{'NetRxDrop'}
-         , $net{$2}{'NetRxFifo'}
-         , $net{$2}{'NetRxFrame'}
-         , $net{$2}{'NetRxCompr'}
-         , $net{$2}{'NetRxMulti'}
-         , $net{$2}{'NetTxBytes'}
-         , $net{$2}{'NetTxPacktes'}
-         , $net{$2}{'NetTxErrs'}
-         , $net{$2}{'NetTxDrop'}
-         , $net{$2}{'NetTxFifo'}
-         , $net{$2}{'NetTxColls'}
-         , $net{$2}{'NetTxCarr'}
-         , $net{$2}{'NetTxCompr'}
+         ( $net{$2}{NetRxBytes}
+         , $net{$2}{NetRxPackets}
+         , $net{$2}{NetRxErrs}
+         , $net{$2}{NetRxDrop}
+         , $net{$2}{NetRxFifo}
+         , $net{$2}{NetRxFrame}
+         , $net{$2}{NetRxCompr}
+         , $net{$2}{NetRxMulti}
+         , $net{$2}{NetTxBytes}
+         , $net{$2}{NetTxPacktes}
+         , $net{$2}{NetTxErrs}
+         , $net{$2}{NetTxDrop}
+         , $net{$2}{NetTxFifo}
+         , $net{$2}{NetTxColls}
+         , $net{$2}{NetTxCarr}
+         , $net{$2}{NetTxCompr}
          ) = split /\s+/, $4;
 
-         $sum{'NetRxBytes'} += $net{$2}{'NetRxBytes'};
-         $sum{'NetTxBytes'} += $net{$2}{'NetTxBytes'};
+         $sum{NetRxBytes} += $net{$2}{NetRxBytes};
+         $sum{NetTxBytes} += $net{$2}{NetTxBytes};
       }
    }
 
@@ -724,20 +729,20 @@ sub NetStats {
 sub SockStats {
    my %sock;
 
-   open(SOCK,"<$file{'sockstats'}") or die "Statistics: can't open $file{'sockstats'}";
+   open SOCK,'<',$file{sockstats} or die "Statistics: can't open $file{sockstats}";
 
    while (<SOCK>) {
       if (/sockets: used (\d+)/) {
-         $sock{'SockTotalSockets'} = $1;
+         $sock{SockTotalSockets} = $1;
       }
       elsif (/TCP: inuse (\d+)/) {
-         $sock{'SockTcpSockets'} = $1;
+         $sock{SockTcpSockets} = $1;
       }
       elsif (/UDP: inuse (\d+)/) {
-         $sock{'SockUdpSockets'} = $1;
+         $sock{SockUdpSockets} = $1;
       }
       elsif (/RAW: inuse (\d+)/) {
-         $sock{'SockRawSockets'} = $1;
+         $sock{SockRawSockets} = $1;
       }
    }
 
@@ -753,70 +758,71 @@ sub DiskStats {
    # if diskstats (2.6) are not found then let's try to read
    # the partitions (2.4)
 
-   if (open(DISK,"<$file{'diskstats'}")) {
+   if (open DISK,'<',$file{diskstats}) {
       while (<DISK>) {
          if (/^\s+(\d+)\s+(\d+)\s+(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/) {
             next if $4 == 0 && $8 == 0;
-            $disk{$3}{'DiskMajor'}          = $1;
-            $disk{$3}{'DiskMinor'}          = $2;
-            $disk{$3}{'DiskReadRequests'}   = $4;
-            $disk{$3}{'DiskReadBytes'}      = $6 * $block_size;
-            $disk{$3}{'DiskWriteRequests'}  = $8;
-            $disk{$3}{'DiskWriteBytes'}     = $9 * $block_size;
-            $disk{$3}{'DiskTotalRequests'} += $disk{$3}{'DiskReadRequests'} + $disk{$3}{'DiskWriteRequests'};
-            $disk{$3}{'DiskTotalBytes'}    += $disk{$3}{'DiskReadBytes'} + $disk{$3}{'DiskWriteBytes'};
+            $disk{$3}{DiskMajor}          = $1;
+            $disk{$3}{DiskMinor}          = $2;
+            $disk{$3}{DiskReadRequests}   = $4;
+            $disk{$3}{DiskReadBytes}      = $6 * $block_size;
+            $disk{$3}{DiskWriteRequests}  = $8;
+            $disk{$3}{DiskWriteBytes}     = $9 * $block_size;
+            $disk{$3}{DiskTotalRequests} += $disk{$3}{DiskReadRequests} + $disk{$3}{DiskWriteRequests};
+            $disk{$3}{DiskTotalBytes}    += $disk{$3}{DiskReadBytes} + $disk{$3}{DiskWriteBytes};
          }
          elsif (/^\s+(\d+)\s+(\d+)\s+(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/) {
-            $disk{$3}{'DiskMajor'}          = $1;
-            $disk{$3}{'DiskMinor'}          = $2;
-            $disk{$3}{'DiskReadRequests'}   = $4;
-            $disk{$3}{'DiskReadBytes'}      = $5 * $block_size;
-            $disk{$3}{'DiskWriteRequests'}  = $6;
-            $disk{$3}{'DiskWriteBytes'}     = $7 * $block_size;
-            $disk{$3}{'DiskTotalRequests'} += $disk{$3}{'DiskReadRequests'} + $disk{$3}{'DiskWriteRequests'};
-            $disk{$3}{'DiskTotalBytes'}    += $disk{$3}{'DiskReadBytes'} + $disk{$3}{'DiskWriteBytes'};
+            $disk{$3}{DiskMajor}          = $1;
+            $disk{$3}{DiskMinor}          = $2;
+            $disk{$3}{DiskReadRequests}   = $4;
+            $disk{$3}{DiskReadBytes}      = $5 * $block_size;
+            $disk{$3}{DiskWriteRequests}  = $6;
+            $disk{$3}{DiskWriteBytes}     = $7 * $block_size;
+            $disk{$3}{DiskTotalRequests} += $disk{$3}{DiskReadRequests} + $disk{$3}{DiskWriteRequests};
+            $disk{$3}{DiskTotalBytes}    += $disk{$3}{DiskReadBytes} + $disk{$3}{DiskWriteBytes};
          }
          else {
             next;
          }
 
-         $sum{'DiskSumReadRequests'}  += $disk{$3}{'DiskReadRequests'};
-         $sum{'DiskSumReadBytes'}     += $disk{$3}{'DiskReadBytes'};
-         $sum{'DiskSumWriteRequests'} += $disk{$3}{'DiskWriteRequests'};
-         $sum{'DiskSumWriteBytes'}    += $disk{$3}{'DiskWriteBytes'};
-         $sum{'DiskSumRequests'}      += $disk{$3}{'DiskTotalRequests'};
-         $sum{'DiskSumBytes'}         += $disk{$3}{'DiskTotalBytes'};
+         $sum{DiskReadRequests}  += $disk{$3}{DiskReadRequests};
+         $sum{DiskReadBytes}     += $disk{$3}{DiskReadBytes};
+         $sum{DiskWriteRequests} += $disk{$3}{DiskWriteRequests};
+         $sum{DiskWriteBytes}    += $disk{$3}{DiskWriteBytes};
+         $sum{DiskRequests}      += $disk{$3}{DiskTotalRequests};
+         $sum{DiskBytes}         += $disk{$3}{DiskTotalBytes};
       }
 
       close DISK;
    }
-   elsif (open(DISK,"<$file{'partitions'}")) {
+   elsif (open DISK,'<',$file{partitions}) {
       while (<DISK>) {
          tr/A-Z/a-z/;
 
          if (/^\s+(\d+)\s+(\d+)\s+(\d+)\s+(\w+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)$/) {
             next if $5 == 0 && $9 == 0;
-            $disk{$4}{'DiskMajor'}          = $1;
-            $disk{$4}{'DiskMinor'}          = $2;
-            $disk{$4}{'DiskReadRequests'}   = $5;
-            $disk{$4}{'DiskReadBytes'}      = $7 * $block_size;
-            $disk{$4}{'DiskWriteRequests'}  = $9;
-            $disk{$4}{'DiskWriteBytes'}     = $10 * $block_size;
-            $disk{$4}{'DiskTotalRequests'} += $disk{$4}{'ReadRequests'} + $disk{$4}{'WriteRequests'};
-            $disk{$4}{'DiskTotalBytes'}    += $disk{$4}{'ReadBytes'} + $disk{$4}{'WriteBytes'};
-            $sum{'DiskSumReadRequests'}    += $disk{$4}{'DiskReadRequests'};
-            $sum{'DiskSumReadBytes'}       += $disk{$4}{'DiskReadBytes'};
-            $sum{'DiskSumWriteRequests'}   += $disk{$4}{'DiskWriteRequests'};
-            $sum{'DiskSumWriteBytes'}      += $disk{$4}{'DiskWriteBytes'};
-            $sum{'DiskSumRequests'}        += $disk{$4}{'DiskTotalRequests'};
-            $sum{'DiskSumBytes'}           += $disk{$4}{'DiskTotalBytes'};
+            $disk{$4}{DiskMajor}          = $1;
+            $disk{$4}{DiskMinor}          = $2;
+            $disk{$4}{DiskReadRequests}   = $5;
+            $disk{$4}{DiskReadBytes}      = $7 * $block_size;
+            $disk{$4}{DiskWriteRequests}  = $9;
+            $disk{$4}{DiskWriteBytes}     = $10 * $block_size;
+            $disk{$4}{DiskTotalRequests} += $disk{$4}{ReadRequests} + $disk{$4}{WriteRequests};
+            $disk{$4}{DiskTotalBytes}    += $disk{$4}{ReadBytes} + $disk{$4}{WriteBytes};
+
+            $sum{DiskReadRequests}  += $disk{$4}{DiskReadRequests};
+            $sum{DiskReadBytes}     += $disk{$4}{DiskReadBytes};
+            $sum{DiskWriteRequests} += $disk{$4}{DiskWriteRequests};
+            $sum{DiskWriteBytes}    += $disk{$4}{DiskWriteBytes};
+            $sum{DiskRequests}      += $disk{$4}{DiskTotalRequests};
+            $sum{DiskBytes}         += $disk{$4}{DiskTotalBytes};
          }
       }
 
       close DISK;
    }
    else {
-      die "Statistics: can't open $file{'diskstats'} or $file{'partitions'}";
+      die "Statistics: can't open $file{diskstats} or $file{partitions}";
    }
 
    return (\%disk,\%sum);
@@ -829,7 +835,7 @@ sub DiskUsage {
    # i will build my own disk free function, but for moment that should
    # be enough. The -k option gives the output in kilobytes.
 
-   open(DFK,"/bin/df -k |") or die "Statistics: can't execute /bin/df -k";
+   open DFK,"/bin/df -k |"  or die "Statistics: can't execute /bin/df -k";
 
    my (%disk_usage,$disk_name);
 
@@ -837,11 +843,11 @@ sub DiskUsage {
       s/%//g;
 
       if (/^(.+?)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(.*)$/) {
-         $disk_usage{$1}{'DiskU_Total'}      = $2;
-         $disk_usage{$1}{'DiskU_Usage'}      = $3;
-         $disk_usage{$1}{'DiskU_Free'}       = $4;
-         $disk_usage{$1}{'DiskU_UsagePro'}   = $5;
-         $disk_usage{$1}{'DiskU_MountPoint'} = $6;
+         $disk_usage{$1}{DiskU_Total}      = $2;
+         $disk_usage{$1}{DiskU_Usage}      = $3;
+         $disk_usage{$1}{DiskU_Free}       = $4;
+         $disk_usage{$1}{DiskU_UsagePro}   = $5;
+         $disk_usage{$1}{DiskU_MountPoint} = $6;
       }
       elsif (/^(.+?)(\s|)$/ && !$disk_name) {
 
@@ -855,11 +861,11 @@ sub DiskUsage {
          # this line should contain the rest informations for the
          # disk name that we stored in the last loop
 
-         $disk_usage{$disk_name}{'DiskU_Total'}      = $1;
-         $disk_usage{$disk_name}{'DiskU_Usage'}      = $2;
-         $disk_usage{$disk_name}{'DiskU_Free'}       = $3;
-         $disk_usage{$disk_name}{'DiskU_UsagePro'}   = $4;
-         $disk_usage{$disk_name}{'DiskU_MountPoint'} = $5;
+         $disk_usage{$disk_name}{DiskU_Total}      = $1;
+         $disk_usage{$disk_name}{DiskU_Usage}      = $2;
+         $disk_usage{$disk_name}{DiskU_Free}       = $3;
+         $disk_usage{$disk_name}{DiskU_UsagePro}   = $4;
+         $disk_usage{$disk_name}{DiskU_MountPoint} = $5;
 
          undef $disk_name;
       }
@@ -881,18 +887,18 @@ sub DiskUsage {
 sub LoadAVG {
    my (%lavg,$proc);
 
-   open(LAVG,"<$file{'loadavg'}") or die "Statistics: can't open $file{'loadavg'}";
+   open LAVG,'<',$file{loadavg} or die "Statistics: can't open $file{loadavg}";
 
-   ( $lavg{'ProcAVG_1'}
-   , $lavg{'ProcAVG_5'}
-   , $lavg{'ProcAVG_15'}
+   ( $lavg{ProcAVG_1}
+   , $lavg{ProcAVG_5}
+   , $lavg{ProcAVG_15}
    , $proc
    ) = (split /\s+/, <LAVG>)[0,1,2,3];
 
    close LAVG;
 
-   ( $lavg{'ProcRunQueue'}
-   , $lavg{'ProcCount'}
+   ( $lavg{ProcRunQueue}
+   , $lavg{ProcCount}
    ) = split /\//, $proc;
 
    return \%lavg;
@@ -901,7 +907,7 @@ sub LoadAVG {
 sub Processes {
    my (%sps,%userids);
 
-   opendir(PDIR,$file{'procdir'}) or die "Statistics: can't open directory $file{'procdir'}";
+   opendir PDIR,$file{procdir}  or die "Statistics: can't open directory $file{procdir}";
 
    # we get all the PIDs from the /proc filesystem. if we can't open a file
    # of a process, then it can be that the process doesn't exist any more and
@@ -913,7 +919,7 @@ sub Processes {
 
    # we trying to get the UIDs for each linux user
 
-   open(PWD,"<$file{'passwd'}") or die die "Statistics: can't open $file{'passwd'}";
+   open PWD,'<',$file{passwd} or die die "Statistics: can't open $file{passwd}";
 
    while (<PWD>) {
       next if /^(#|$)/;
@@ -927,14 +933,14 @@ sub Processes {
 
       #  memory usage for each process
 
-      if (open(MEM,"<$file{'procdir'}/$pid/statm")) {
-         ( $sps{$pid}{'sProcSize'}
-         , $sps{$pid}{'sProcResident'}
-         , $sps{$pid}{'sProcShare'}
-         , $sps{$pid}{'sProcTRS'}
-         , $sps{$pid}{'sProcDRS'}
-         , $sps{$pid}{'sProcLRS'}
-         , $sps{$pid}{'sProcDT'}
+      if (open MEM,'<',"$file{procdir}/$pid/statm") {
+         ( $sps{$pid}{sProcSize}
+         , $sps{$pid}{sProcResident}
+         , $sps{$pid}{sProcShare}
+         , $sps{$pid}{sProcTRS}
+         , $sps{$pid}{sProcDRS}
+         , $sps{$pid}{sProcLRS}
+         , $sps{$pid}{sProcDT}
          ) = split /\s+/, <MEM>;
          close MEM;
       }
@@ -945,30 +951,30 @@ sub Processes {
 
       #  different other informations for each process
 
-      if (open(PRC,"<$file{'procdir'}/$pid/stat")) {
-         ( $sps{$pid}{'sProcPid'}
-         , $sps{$pid}{'sProcComm'}
-         , $sps{$pid}{'sProcState'}
-         , $sps{$pid}{'sProcPPid'}
-         , $sps{$pid}{'sProcPGrp'}
-         , $sps{$pid}{'sProcSession'}
-         , $sps{$pid}{'sProcTTYnr'}
-         , $sps{$pid}{'sProcMinFLT'}
-         , $sps{$pid}{'sProcCMinFLT'}
-         , $sps{$pid}{'sProcMayFLT'}
-         , $sps{$pid}{'sProcCMayFLT'}
-         , $sps{$pid}{'sProcUTime'}
-         , $sps{$pid}{'sProcSTime'}
-         , $sps{$pid}{'sProcCUTime'}
-         , $sps{$pid}{'sProcCSTime'}
-         , $sps{$pid}{'sProcPrior'}
-         , $sps{$pid}{'sProcNice'}
-         , $sps{$pid}{'sProcStartTime'}
-         , $sps{$pid}{'sProcVSize'}
-         , $sps{$pid}{'sProcNSwap'}
-         , $sps{$pid}{'sProcCNSwap'}
-         , $sps{$pid}{'sProcProc'}
-         ) = (split /\s+/, <PRC>)[0,1,2,3,4,5,6,9,10,11,12,13,14,15,16,17,18,21,22,35,36,38];
+      if (open PRC,'<',"$file{procdir}/$pid/stat") {
+         ( $sps{$pid}{sProcPid}
+         , $sps{$pid}{sProcComm}
+         , $sps{$pid}{sProcState}
+         , $sps{$pid}{sProcPPid}
+         , $sps{$pid}{sProcPGrp}
+         , $sps{$pid}{sProcSession}
+         , $sps{$pid}{sProcTTYnr}
+         , $sps{$pid}{sProcMinFLT}
+         , $sps{$pid}{sProcCMinFLT}
+         , $sps{$pid}{sProcMayFLT}
+         , $sps{$pid}{sProcCMayFLT}
+         , $sps{$pid}{sProcUTime}
+         , $sps{$pid}{sProcSTime}
+         , $sps{$pid}{sProcCUTime}
+         , $sps{$pid}{sProcCSTime}
+         , $sps{$pid}{sProcPrior}
+         , $sps{$pid}{sProcNice}
+         , $sps{$pid}{sProcStartTime}
+         , $sps{$pid}{sProcVSize}
+         , $sps{$pid}{sProcNSwap}
+         , $sps{$pid}{sProcCNSwap}
+         , $sps{$pid}{sProcProc}
+         ) = (split /\s+/, <PRC>)[0..6,9..18,21..22,35..36,38];
 
          close PRC;
       }
@@ -979,14 +985,14 @@ sub Processes {
 
       # determine the owner of the process
 
-      if (open(UID,"<$file{'procdir'}/$pid/status")) {
+      if (open UID,'<',"$file{procdir}/$pid/status") {
          while (<UID>) {
             s/\t/ /;
             next unless /^Uid:\s+(\d+)/;
-            $sps{$pid}{'sProcOwner'} = $userids{$1} if $userids{$1};
+            $sps{$pid}{sProcOwner} = $userids{$1} if $userids{$1};
          }
 
-         $sps{$pid}{'sProcOwner'} = 'n/a' unless $sps{$pid}{'sProcOwner'};
+         $sps{$pid}{sProcOwner} = 'n/a' unless $sps{$pid}{sProcOwner};
 
          close UID;
       }
@@ -997,11 +1003,11 @@ sub Processes {
 
       #  command line for each process
 
-      if (open(CMD,"<$file{'procdir'}/$pid/cmdline")) {
-         $sps{$pid}{'sProcCMDLINE'} =  <CMD>;
-         $sps{$pid}{'sProcCMDLINE'} =~ s/\0/ /g if $sps{$pid}{'sProcCMDLINE'};
-         $sps{$pid}{'sProcCMDLINE'} =  'n/a' unless $sps{$pid}{'sProcCMDLINE'};
-         chomp $sps{$pid}{'sProcCMDLINE'};
+      if (open CMD,'<',"$file{procdir}/$pid/cmdline") {
+         $sps{$pid}{sProcCMDLINE} =  <CMD>;
+         $sps{$pid}{sProcCMDLINE} =~ s/\0/ /g if $sps{$pid}{sProcCMDLINE};
+         $sps{$pid}{sProcCMDLINE} =  'n/a' unless $sps{$pid}{sProcCMDLINE};
+         chomp $sps{$pid}{sProcCMDLINE};
          close CMD;
       }
    }

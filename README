@@ -1,4 +1,3 @@
-
 NAME
 
 Linux::Statistics - collect system statistics
@@ -7,17 +6,21 @@ SYNOPSIS
 
 use Linux::Statistics;
 
-$stats = getStats( SysInfo   => 1,
-                   ProcStats => 1,
-                   MemStats  => 1,
-                   PgSwStats => 1,
-                   NetStats  => 1,
-                   SockStats => 1,
-                   DiskStats => 1,
-                   DiskUsage => 1,
-                   LoadAVG   => 1,
-                   Processes => 1,
-                   TimePoint => 1 );
+$obj = Linux::Statistics->new( SysInfo   => 1,
+                               ProcStats => 1,
+                               MemStats  => 1,
+                               PgSwStats => 1,
+                               NetStats  => 1,
+                               SockStats => 1,
+                               DiskStats => 1,
+                               DiskUsage => 1,
+                               LoadAVG   => 1,
+                               Processes => 1,
+                               TimePoint => 1 );
+
+sleep($sec);
+
+$stats = $obj->getStats;
 
 DESCRIPTION
 
@@ -28,14 +31,25 @@ distributions SuSE, SLES (s390 and s390x), Red Hat, Debian and Mandrake on kerne
 release number. To run this module it is necessary to start it as root or another user
 with the authorization to read the /proc filesystem and the /etc/passwd file.
 
+NOTE THAT ...
+
+it is necessary to sleep for at least of one second between the calls of new() and getStats(),
+if you want to get useful statistics for ProcStats, NetStats, DiskStats and PgSwStats. If you
+start some statistics for ProcStats you should do that in any case, otherwise you can get a
+message like this:
+
+Illegal division by zero at ...
+
+The reason is that this statistics are deltas since the last time that the new method was called.
+
 OPTIONS
 
 Each option returns a hash reference with the collected system informations.
 
-   SysInfo
+SysInfo
 
-   Generated from /proc/sys/kernel/hostname *domainname *ostype *osrelease *version
-   and /proc/sysinfo, /proc/cpuinfo, /proc/meminfo, /proc/uptime.
+Generated from /proc/sys/kernel/hostname *domainname *ostype *osrelease *version
+and /proc/sysinfo, /proc/cpuinfo, /proc/meminfo, /proc/uptime.
 
    SysHostname           -  This is the host name.
    SysDomain             -  This is the host domain name.
@@ -50,9 +64,9 @@ Each option returns a hash reference with the collected system informations.
    SysUptime             -  This is the uptime of the system.
    SysIdleTime           -  This is the idle time of the system idletime.
 
-   ProcStats
+ProcStats
 
-   Generated from /proc/stat.
+Generated from /proc/stat.
 
    ProcUser              -  Percentage of CPU utilization at the user level.
    ProcNice              -  Percentage of CPU utilization at the user level with nice priority.
@@ -62,9 +76,9 @@ Each option returns a hash reference with the collected system informations.
    ProcTotal             -  Total percentage of CPU utilization at user and system level.
    ProcNew               -  Number of new processes that were produced per second.
 
-   MemStats
+MemStats
 
-   Generated from /proc/meminfo.
+Generated from /proc/meminfo.
 
    MemUsed               -  Total size of used memory in kilobytes.
    MemFree               -  Total size of free memory in kilobytes.
@@ -77,18 +91,18 @@ Each option returns a hash reference with the collected system informations.
    MemSwapUsedPro        -  Total size of swap space is used in percent.
    MemSwapTotal          -  Total size of swap space in kilobytes.
 
-   PgSwStats
+PgSwStats
 
-   Generated from /proc/stat or /proc/vmstat.
+Generated from /proc/stat or /proc/vmstat.
 
    PageIn                -  Number of kilobytes the system has paged in from disk per second.
    PageOut               -  Number of kilobytes the system has paged out to disk per second.
    SwapIn                -  Number of kilobytes the system has swapped in from disk per second.
    SwapOut               -  Number of kilobytes the system has swapped out to disk per second.
 
-   NetStats
+NetStats
 
-   Generated from /proc/net/dev.
+Generated from /proc/net/dev.
 
    NetRxBytes            -  Number of bytes received per second.
    NetRxPackets          -  Number of packets received per second.
@@ -107,25 +121,25 @@ Each option returns a hash reference with the collected system informations.
    NetTxCarr             -  Number of carrier errors that happend per second on transmitted packets.
    NetTxCompr            -  Number of compressed packets transmitted per second.
 
-   NetSumStats
+NetStatsSum
 
    This are just some summaries of NetStats.
 
    NetRxBytes            -  Total number of bytes received per second.
    NetTxBytes            -  Total number of bytes transmitted per second.
 
-   SockStats
+SockStats
 
-   Generated from /proc/net/sockstat.
+Generated from /proc/net/sockstat.
 
    SockTcpSockets        -  Number of tcp sockets in use.
    SockUdpSockets        -  Number of udp sockets in use.
    SockRawSockets        -  Number of raw sockets in use.
    SockTotalSockets      -  Total number of sockets in use.
 
-   DiskStats
+DiskStats
 
-   Generated from /proc/diskstats or /proc/partitions.
+Generated from /proc/diskstats or /proc/partitions.
 
    DiskMajor             -  The mayor number of the disk
    DiskMinor             -  The minor number of the disk
@@ -136,31 +150,30 @@ Each option returns a hash reference with the collected system informations.
    DiskTotalRequests     -  Total number of requests were made per second from/to physical disk.
    DiskTotalBytes        -  Total number of bytes transmitted per second from/to physical disk.
 
-   DiskSumStats
+DiskStatsSum
 
    This are just some summaries of DiskStats.
 
-   DiskSumReadRequests   -  Total number of read requests were made per second to all physical disks.
-   DiskSumReadBytes      -  Total number of bytes reads per second from all physical disks.
-   DiskSumWriteRequests  -  Total number of write requests were made per second to all physical disks.
-   DiskSumWriteBytes     -  Total number of bytes written per second to all physical disks.
-   DiskSumRequests       -  Total number of requests were made per second from/to all physical disks.
-   DiskSumBytes          -  Total number of bytes transmitted per second from/to all physical disks.
+   DiskReadRequests      -  Total number of read requests were made per second to all physical disks.
+   DiskReadBytes         -  Total number of bytes reads per second from all physical disks.
+   DiskWriteRequests     -  Total number of write requests were made per second to all physical disks.
+   DiskWriteBytes        -  Total number of bytes written per second to all physical disks.
+   DiskRequests          -  Total number of requests were made per second from/to all physical disks.
+   DiskBytes             -  Total number of bytes transmitted per second from/to all physical disks.
 
-   DiskUsage
+DiskUsage
 
-   Generated with /bin/df -k.
+Generated with I</bin/df -k>.
 
    DiskU_Total           -  The total size of the disk.
    DiskU_Usage           -  The used disk space in kilobytes.
    DiskU_Free            -  The free disk space in kilobytes.
    DiskU_UsagePro        -  The used disk space in percent.
    DiskU_MountPoint      -  The moint point of the disk.
-   DiskU_Name            -  The disk name.
 
-   LoadAVG
+LoadAVG
 
-   Generated with /proc/loadavg.
+Generated with /proc/loadavg.
 
    ProcAVG_1             -  The average processor workload of the last minute.
    ProcAVG_5             -  The average processor workload of the last five minutes.
@@ -168,9 +181,9 @@ Each option returns a hash reference with the collected system informations.
    ProcRunQueue          -  The number of processes waiting for runtime.
    ProcCount             -  The total amount of processes on the system.
 
-   Processes
+Processes
 
-   Generated with /proc/<number>/statm, /proc/<number>/stat, /proc/<number>/status>, /proc/<number>/cmdline and /etc/passwd.
+Generated with /proc/<number>/statm, /proc/<number>/stat, /proc/<number>/status, /proc/<number>/cmdline and /etc/passwd.
 
    sProcPPid             -  The parent process ID of the process.
    sProcOwner            -  The owner name of the process.
@@ -204,74 +217,78 @@ Each option returns a hash reference with the collected system informations.
    sProcCMDLINE          -  Command line of the process.
    sProcPid              -  The process ID.
 
-   TimePoint
+TimePoint
 
-   Generated with localtime(time).
+Generated with localtime(time).
 
    Date                  -  The current date.
    Time                  -  The current time.
 
 EXAMPLES
 
-   A very simple perl script could looks like this:
+A very simple perl script could looks like this:
 
          #!/usr/bin/perl -w
          use strict;
          use Linux::Statistics;
 
-         my $stats = getStats( ProcStats => 1 );
+         my $obj   = Linux::Statistics->new( ProcStats => 1 );
+         sleep(1);
+         my $stats = $obj->getStats;
 
          print "Report/Statistic for ProcStats\n";
-         print "  ProcUser      $stats->{'ProcStats'}->{'ProcUser'}\n";
-         print "  ProcNice      $stats->{'ProcStats'}->{'ProcNice'}\n";
-         print "  ProcSystem    $stats->{'ProcStats'}->{'ProcSystem'}\n";
-         print "  ProcIdle      $stats->{'ProcStats'}->{'ProcIdle'}\n";
-         print "  ProcIOWait    $stats->{'ProcStats'}->{'ProcIOWait'}\n";
-         print "  ProcTotal     $stats->{'ProcStats'}->{'ProcTotal'}\n";
-         print "  ProcNew       $stats->{'ProcStats'}->{'ProcNew'}\n";
+         print "  ProcUser      $stats->{ProcStats}->{ProcUser}\n";
+         print "  ProcNice      $stats->{ProcStats}->{ProcNice}\n";
+         print "  ProcSystem    $stats->{ProcStats}->{ProcSystem}\n";
+         print "  ProcIdle      $stats->{ProcStats}->{ProcIdle}\n";
+         print "  ProcIOWait    $stats->{ProcStats}->{ProcIOWait}\n";
+         print "  ProcTotal     $stats->{ProcStats}->{ProcTotal}\n";
+         print "  ProcNew       $stats->{ProcStats}->{ProcNew}\n";
 
-   Or this:
+Or this:
 
          #!/usr/bin/perl -w
          use strict;
          use Linux::Statistics;
 
-         my $stats = getStats( NetStats => 1 );
+         my $obj   = Linux::Statistics->new( NetStats => 1 );
+         my $stats = $obj->getStats;
 
-         foreach my $device (keys %{$stats->{'NetStats'}}) {
+         foreach my $device (keys %{$stats->{NetStats}}) {
             print "Statistics for device $device ...\n";
 
-            while (my ($key,$value) = each %{$stats->{'NetStats'}->{$device}}) {
+            while (my ($key,$value) = each %{$stats->{NetStats}->{$device}}) {
                print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\n";
             }
          }
 
          print "\nTotal network statistics ...\n";
 
-         while (my ($key,$value) = each %{$stats->{'NetSumStats'}}) {
+         while (my ($key,$value) = each %{$stats->{NetStatsSum}}) {
             print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\n";
          }
 
-   This also:
+This also:
 
          #!/usr/bin/perl -w
          use strict;
          use Linux::Statistics;
 
-         my $stats = getStats( Processes => 1 );
+         my $obj   = Linux::Statistics->new( Processes => 1 );
+         my $stats = $obj->getStats;
 
          # print a formated header
 
          print "$_". ' ' x (12-length($_)) for qw/PID PPID OWNER STATE SIZE VSIZE COMMAND/;
          print "\n";
 
-         foreach my $pid (keys %{$stats->{'Processes'}}) {
-            print "$stats->{'Processes'}->{$pid}->{$_}". ' ' x (12-length($stats->{'Processes'}->{$pid}->{$_}))
+         foreach my $pid (keys %{$stats->{Processes}}) {
+            print "$stats->{Processes}->{$pid}->{$_}". ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
                for qw/sProcPid sProcPPid sProcOwner sProcState sProcSize sProcVSize sProcCMDLINE/;
             print "\n";
          }
 
-   It is also possible to create a hash reference with options.
+It is also possible to create a hash reference with options.
 
       $options = {
          SysInfo   => 1,
@@ -287,20 +304,22 @@ EXAMPLES
          TimePoint => 1
       };
 
-      $stats = getStats( $options );
+      $obj   = Linux::Statistics->new( $options );
+      $stats = $obj->getStats;
 
-   If you're not sure you can use the the Data::Dumper module to learn more about the hash structure.
+If you're not sure you can use the the Data::Dumper module to learn more about the hash structure.
 
          #!/usr/bin/perl -w
          use strict;
          use Linux::Statistics;
          use Data::Dumper;
 
-         my $stats = getStats( Processes => 1 );
+         my $obj   = Linux::Statistics->new( Processes => 1 );
+         my $stats = $obj->getStats;
 
          print Dumper($stats);
 
-   Have a lot of fun with this module :-)
+Have a lot of fun with this module :-)
 
 SEE ALSO
 
@@ -316,3 +335,4 @@ Copyright (c) 2005, 2006 by Jonny Schulz. All rights reserved.
 
 This program is free software; you can redistribute it and/or
 modify it under the same terms as Perl itself.
+

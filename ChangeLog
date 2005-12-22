@@ -1,0 +1,9 @@
+1.01	Added the method new().
+	Did some syntax improvements.
+	Enlarged the test.pl script.
+	Changed the keys NetSumStats and DiskSumStats
+	  to NetStatsSum and DiskStatsSum.
+	Thanks to David Serrano for his tipps about
+	  the ugly sleep(1) in the getStats function.
+	  I realized his suggestion in the new() method.
+1.00	Released at 2005-12-22.

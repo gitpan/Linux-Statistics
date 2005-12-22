@@ -128,25 +128,29 @@
 .rm #[ #] #H #V #F C
 .\" ========================================================================
 .\"
-.IX Title "Statistics 3"
-.TH Statistics 3 "2005-12-21" "perl v5.8.6" "User Contributed Perl Documentation"
+.IX Title "Linux-Statistics::Statistics 3"
+.TH Linux-Statistics::Statistics 3 "2005-12-22" "perl v5.8.6" "User Contributed Perl Documentation"
 .SH "NAME"
 Linux::Statistics \- collect system statistics
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
 use Linux::Statistics;
 .PP
-$stats = getStats( SysInfo   => 1,
-                   ProcStats => 1,
-                   MemStats  => 1,
-                   PgSwStats => 1,
-                   NetStats  => 1,
-                   SockStats => 1,
-                   DiskStats => 1,
-                   DiskUsage => 1,
-                   LoadAVG   => 1,
-                   Processes => 1,
-                   TimePoint => 1 );
+$obj = Linux::Statistics\->new( SysInfo   => 1,
+                               ProcStats => 1,
+                               MemStats  => 1,
+                               PgSwStats => 1,
+                               NetStats  => 1,
+                               SockStats => 1,
+                               DiskStats => 1,
+                               DiskUsage => 1,
+                               LoadAVG   => 1,
+                               Processes => 1,
+                               TimePoint => 1 );
+.PP
+sleep($sec);
+.PP
+$stats = \f(CW$obj\fR\->getStats;
 .SH "DESCRIPTION"
 .IX Header "DESCRIPTION"
 This module collects system statistics like processor workload, memory usage and other
@@ -155,6 +159,16 @@ distributions SuSE, \s-1SLES\s0 (s390 and s390x), Red Hat, Debian and Mandrake o
 2.4 and 2.6 but it should also running on other linux distributions with the same kernel
 release number. To run this module it is necessary to start it as root or another user
 with the authorization to read the /proc filesystem and the /etc/passwd file.
+.Sh "\s-1NOTE\s0 \s-1THAT\s0 ..."
+.IX Subsection "NOTE THAT ..."
+it is necessary to sleep for at least of one second between the calls of \fInew()\fR and \fIgetStats()\fR,
+if you want to get useful statistics for ProcStats, NetStats, DiskStats and PgSwStats. If you
+start some statistics for ProcStats you should do that in any case, otherwise you can get a
+message like this:
+.PP
+Illegal division by zero at ...
+.PP
+The reason is that this statistics are deltas since the last time that the new method was called.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
 Each option returns a hash reference with the collected system informations.
@@ -238,8 +252,8 @@ Generated from \fI/proc/net/dev\fR.
 \&   NetTxCarr             -  Number of carrier errors that happend per second on transmitted packets.
 \&   NetTxCompr            -  Number of compressed packets transmitted per second.
 .Ve
-.Sh "NetSumStats"
-.IX Subsection "NetSumStats"
+.Sh "NetStatsSum"
+.IX Subsection "NetStatsSum"
 .Vb 1
 \&   This are just some summaries of NetStats.
 .Ve
@@ -272,31 +286,30 @@ Generated from \fI/proc/diskstats\fR or \fI/proc/partitions\fR.
 \&   DiskTotalRequests     -  Total number of requests were made per second from/to physical disk.
 \&   DiskTotalBytes        -  Total number of bytes transmitted per second from/to physical disk.
 .Ve
-.Sh "DiskSumStats"
-.IX Subsection "DiskSumStats"
+.Sh "DiskStatsSum"
+.IX Subsection "DiskStatsSum"
 .Vb 1
 \&   This are just some summaries of DiskStats.
 .Ve
 .PP
 .Vb 6
-\&   DiskSumReadRequests   -  Total number of read requests were made per second to all physical disks.
-\&   DiskSumReadBytes      -  Total number of bytes reads per second from all physical disks.
-\&   DiskSumWriteRequests  -  Total number of write requests were made per second to all physical disks.
-\&   DiskSumWriteBytes     -  Total number of bytes written per second to all physical disks.
-\&   DiskSumRequests       -  Total number of requests were made per second from/to all physical disks.
-\&   DiskSumBytes          -  Total number of bytes transmitted per second from/to all physical disks.
+\&   DiskReadRequests      -  Total number of read requests were made per second to all physical disks.
+\&   DiskReadBytes         -  Total number of bytes reads per second from all physical disks.
+\&   DiskWriteRequests     -  Total number of write requests were made per second to all physical disks.
+\&   DiskWriteBytes        -  Total number of bytes written per second to all physical disks.
+\&   DiskRequests          -  Total number of requests were made per second from/to all physical disks.
+\&   DiskBytes             -  Total number of bytes transmitted per second from/to all physical disks.
 .Ve
 .Sh "DiskUsage"
 .IX Subsection "DiskUsage"
 Generated with \fI/bin/df \-k\fR.
 .PP
-.Vb 6
+.Vb 5
 \&   DiskU_Total           -  The total size of the disk.
 \&   DiskU_Usage           -  The used disk space in kilobytes.
 \&   DiskU_Free            -  The free disk space in kilobytes.
 \&   DiskU_UsagePro        -  The used disk space in percent.
 \&   DiskU_MountPoint      -  The moint point of the disk.
-\&   DiskU_Name            -  The disk name.
 .Ve
 .Sh "LoadAVG"
 .IX Subsection "LoadAVG"
@@ -365,19 +378,21 @@ A very simple perl script could looks like this:
 \&         use Linux::Statistics;
 .Ve
 .PP
-.Vb 1
-\&         my $stats = getStats( ProcStats => 1 );
+.Vb 3
+\&         my $obj   = Linux::Statistics->new( ProcStats => 1 );
+\&         sleep(1);
+\&         my $stats = $obj->getStats;
 .Ve
 .PP
 .Vb 8
 \&         print "Report/Statistic for ProcStats\en";
-\&         print "  ProcUser      $stats->{'ProcStats'}->{'ProcUser'}\en";
-\&         print "  ProcNice      $stats->{'ProcStats'}->{'ProcNice'}\en";
-\&         print "  ProcSystem    $stats->{'ProcStats'}->{'ProcSystem'}\en";
-\&         print "  ProcIdle      $stats->{'ProcStats'}->{'ProcIdle'}\en";
-\&         print "  ProcIOWait    $stats->{'ProcStats'}->{'ProcIOWait'}\en";
-\&         print "  ProcTotal     $stats->{'ProcStats'}->{'ProcTotal'}\en";
-\&         print "  ProcNew       $stats->{'ProcStats'}->{'ProcNew'}\en";
+\&         print "  ProcUser      $stats->{ProcStats}->{ProcUser}\en";
+\&         print "  ProcNice      $stats->{ProcStats}->{ProcNice}\en";
+\&         print "  ProcSystem    $stats->{ProcStats}->{ProcSystem}\en";
+\&         print "  ProcIdle      $stats->{ProcStats}->{ProcIdle}\en";
+\&         print "  ProcIOWait    $stats->{ProcStats}->{ProcIOWait}\en";
+\&         print "  ProcTotal     $stats->{ProcStats}->{ProcTotal}\en";
+\&         print "  ProcNew       $stats->{ProcStats}->{ProcNew}\en";
 .Ve
 .PP
 Or this:
@@ -389,17 +404,18 @@ Or this:
 \&         use Linux::Statistics;
 .Ve
 .PP
-.Vb 1
-\&         my $stats = getStats( NetStats => 1 );
+.Vb 2
+\&         my $obj   = Linux::Statistics->new( NetStats => 1 );
+\&         my $stats = $obj->getStats;
 .Ve
 .PP
 .Vb 2
-\&         foreach my $device (keys %{$stats->{'NetStats'}}) {
+\&         foreach my $device (keys %{$stats->{NetStats}}) {
 \&            print "Statistics for device $device ...\en";
 .Ve
 .PP
 .Vb 4
-\&            while (my ($key,$value) = each %{$stats->{'NetStats'}->{$device}}) {
+\&            while (my ($key,$value) = each %{$stats->{NetStats}->{$device}}) {
 \&               print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\en";
 \&            }
 \&         }
@@ -410,7 +426,7 @@ Or this:
 .Ve
 .PP
 .Vb 3
-\&         while (my ($key,$value) = each %{$stats->{'NetSumStats'}}) {
+\&         while (my ($key,$value) = each %{$stats->{NetStatsSum}}) {
 \&            print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\en";
 \&         }
 .Ve
@@ -424,8 +440,9 @@ This also:
 \&         use Linux::Statistics;
 .Ve
 .PP
-.Vb 1
-\&         my $stats = getStats( Processes => 1 );
+.Vb 2
+\&         my $obj   = Linux::Statistics->new( Processes => 1 );
+\&         my $stats = $obj->getStats;
 .Ve
 .PP
 .Vb 1
@@ -438,8 +455,8 @@ This also:
 .Ve
 .PP
 .Vb 5
-\&         foreach my $pid (keys %{$stats->{'Processes'}}) {
-\&            print "$stats->{'Processes'}->{$pid}->{$_}". ' ' x (12-length($stats->{'Processes'}->{$pid}->{$_}))
+\&         foreach my $pid (keys %{$stats->{Processes}}) {
+\&            print "$stats->{Processes}->{$pid}->{$_}". ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
 \&               for qw/sProcPid sProcPPid sProcOwner sProcState sProcSize sProcVSize sProcCMDLINE/;
 \&            print "\en";
 \&         }
@@ -464,8 +481,9 @@ It is also possible to create a hash reference with options.
 \&      };
 .Ve
 .PP
-.Vb 1
-\&      $stats = getStats( $options );
+.Vb 2
+\&      $obj   = Linux::Statistics->new( $options );
+\&      $stats = $obj->getStats;
 .Ve
 .PP
 If you're not sure you can use the the Data::Dumper module to learn more about the hash structure.
@@ -478,8 +496,9 @@ If you're not sure you can use the the Data::Dumper module to learn more about t
 \&         use Data::Dumper;
 .Ve
 .PP
-.Vb 1
-\&         my $stats = getStats( Processes => 1 );
+.Vb 2
+\&         my $obj   = Linux::Statistics->new( Processes => 1 );
+\&         my $stats = $obj->getStats;
 .Ve
 .PP
 .Vb 1
