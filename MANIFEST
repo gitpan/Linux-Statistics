@@ -6,3 +6,6 @@ MANIFEST
 test.pl
 Statistics.pm
 ChangeLog
+tests/SimpleCheck.pl
+tests/ProcCheck.pl
+tests/TotalCheck.pl

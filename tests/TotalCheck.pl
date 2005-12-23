@@ -1,5 +1,5 @@
+#!/usr/bin/perl -w
 use strict;
-use warnings;
 use Linux::Statistics;
 
 my %options = (
@@ -67,7 +67,7 @@ my %options = (
       'SockTcpSockets' => undef,
       'SockUdpSockets' => undef,
       'SockRawSockets' => undef,
-      'SockIpFrag'     => undef,
+      'SockIpFrag' => undef,
    },
    'DiskStats' => {
       'DiskMajor' => undef,
@@ -110,8 +110,8 @@ my %options = (
       'sProcCSTime' => undef,
       'sProcPrior' => undef,
       'sProcNice' => undef,
-      'sProcATime' => undef,
       'sProcStartTime' => undef,
+      'sProcATime' => undef,
       'sProcVSize' => undef,
       'sProcNSwap' => undef,
       'sProcCNSwap' => undef,

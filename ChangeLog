@@ -1,4 +1,19 @@
-1.01	Added the method new().
+1.02	Released at 2005-12-23.
+	Added key sProcATime to Processes. This key shows the
+	  current total active time of a process. The time is
+	  given in DD:HH:MM (days:hours:minutes).
+	Added key SockIpFrag to SockStats. SockIpFrag means
+	  the IP fragments currently in use.
+	Added the "tests" directory with some scripts
+	  to test all options and that testers can sends a
+	  generated output by ProcCheck.pl if they detect
+	  some bugs.
+	Did further syntax improvements in the most functions.
+	Time and date error solved.
+	A lot of thanks to the people of perl-community.de
+	  for they suggestions and improvements.
+1.01	Released at 2005-12-22.
+	Added the method new().
 	Did some syntax improvements.
 	Enlarged the test.pl script.
 	Changed the keys NetSumStats and DiskSumStats
@@ -6,4 +21,6 @@
 	Thanks to David Serrano for his tipps about
 	  the ugly sleep(1) in the getStats function.
 	  I realized his suggestion in the new() method.
-1.00	Released at 2005-12-22.
+1.00	Released at 2005-12-21.
+x.xx	Thanks to Larry Wall and all other perl developer
+	for Perl :-)

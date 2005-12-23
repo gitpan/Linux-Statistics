@@ -129,9 +129,9 @@
 .\" ========================================================================
 .\"
 .IX Title "Linux-Statistics::Statistics 3"
-.TH Linux-Statistics::Statistics 3 "2005-12-22" "perl v5.8.6" "User Contributed Perl Documentation"
+.TH Linux-Statistics::Statistics 3 "2005-12-23" "perl v5.8.6" "User Contributed Perl Documentation"
 .SH "NAME"
-Linux::Statistics \- collect system statistics
+Linux::Statistics \- Collect system statistics.
 .SH "SYNOPSIS"
 .IX Header "SYNOPSIS"
 use Linux::Statistics;
@@ -161,7 +161,7 @@ release number. To run this module it is necessary to start it as root or anothe
 with the authorization to read the /proc filesystem and the /etc/passwd file.
 .Sh "\s-1NOTE\s0 \s-1THAT\s0 ..."
 .IX Subsection "NOTE THAT ..."
-it is necessary to sleep for at least of one second between the calls of \fInew()\fR and \fIgetStats()\fR,
+it is necessary to sleep for at least of one second between the calls of \fInew()\fR and \fIgetStats()\fR
 if you want to get useful statistics for ProcStats, NetStats, DiskStats and PgSwStats. If you
 start some statistics for ProcStats you should do that in any case, otherwise you can get a
 message like this:
@@ -171,7 +171,7 @@ Illegal division by zero at ...
 The reason is that this statistics are deltas since the last time that the new method was called.
 .SH "OPTIONS"
 .IX Header "OPTIONS"
-Each option returns a hash reference with the collected system informations.
+All options returns a hash reference with the collected system informations.
 .Sh "SysInfo"
 .IX Subsection "SysInfo"
 Generated from \fI/proc/sys/kernel/hostname\fR *domainname *ostype *osrelease *version
@@ -266,11 +266,12 @@ Generated from \fI/proc/net/dev\fR.
 .IX Subsection "SockStats"
 Generated from \fI/proc/net/sockstat\fR.
 .PP
-.Vb 4
+.Vb 5
+\&   SockTotalSockets      -  Total number of used sockets.
 \&   SockTcpSockets        -  Number of tcp sockets in use.
 \&   SockUdpSockets        -  Number of udp sockets in use.
 \&   SockRawSockets        -  Number of raw sockets in use.
-\&   SockTotalSockets      -  Total number of sockets in use.
+\&   SockIpFrag            -  Number of ip fragments in use.
 .Ve
 .Sh "DiskStats"
 .IX Subsection "DiskStats"
@@ -326,7 +327,7 @@ Generated with \fI/proc/loadavg\fR.
 .IX Subsection "Processes"
 Generated with \fI/proc/<number>/statm\fR, \fI/proc/<number>/stat\fR, \fI/proc/<number>/status\fR, \fI/proc/<number>/cmdline\fR and \fI/etc/passwd\fR.
 .PP
-.Vb 31
+.Vb 32
 \&   sProcPPid             -  The parent process ID of the process.
 \&   sProcOwner            -  The owner name of the process.
 \&   sProcState            -  The status of the process.
@@ -344,6 +345,7 @@ Generated with \fI/proc/<number>/statm\fR, \fI/proc/<number>/stat\fR, \fI/proc/<
 \&   sProcPrior            -  The priority of the process (+15).
 \&   sProcNice             -  The nice level of the process.
 \&   sProcStartTime        -  The time in jiffies the process started after system boot.
+\&   sProcATime            -  The time in D:H:M (days, hours, minutes) the process is active.
 \&   sProcVSize            -  The size of virtual memory of the process.
 \&   sProcNSwap            -  The size of swap space of the process.
 \&   sProcCNSwap           -  The size of swap space of the childrens of the process.
@@ -404,8 +406,9 @@ Or this:
 \&         use Linux::Statistics;
 .Ve
 .PP
-.Vb 2
+.Vb 3
 \&         my $obj   = Linux::Statistics->new( NetStats => 1 );
+\&         sleep(1);
 \&         my $stats = $obj->getStats;
 .Ve
 .PP
@@ -450,14 +453,14 @@ This also:
 .Ve
 .PP
 .Vb 2
-\&         print "$_". ' ' x (12-length($_)) for qw/PID PPID OWNER STATE SIZE VSIZE COMMAND/;
+\&         print "$_". ' ' x (12-length($_)) for qw(PID PPID OWNER STATE SIZE VSIZE COMMAND);
 \&         print "\en";
 .Ve
 .PP
 .Vb 5
 \&         foreach my $pid (keys %{$stats->{Processes}}) {
 \&            print "$stats->{Processes}->{$pid}->{$_}". ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
-\&               for qw/sProcPid sProcPPid sProcOwner sProcState sProcSize sProcVSize sProcCMDLINE/;
+\&               for qw(sProcPid sProcPPid sProcOwner sProcState sProcSize sProcVSize sProcCMDLINE);
 \&            print "\en";
 \&         }
 .Ve
@@ -505,14 +508,27 @@ If you're not sure you can use the the Data::Dumper module to learn more about t
 \&         print Dumper($stats);
 .Ve
 .PP
+You can find a very simple script for tests under the installation directory Linux\-Statistics\-<version>/tests/. The script called SimpleCheck.pl and shows you the collected data with Data::Dumper.
+.IX Subsection "You can find a very simple script for tests under the installation directory Linux-Statistics-<version>/tests/. The script called SimpleCheck.pl and shows you the collected data with Data::Dumper."
+.PP
 Have a lot of fun with this module :\-)
 .IX Subsection "Have a lot of fun with this module :-)"
 .SH "SEE ALSO"
 .IX Header "SEE ALSO"
 The manpage of \fIproc\fR\|(5) or \fI/usr/src/linux/Documentation/filesystems/proc.txt\fR.
+.SH "REPORTING BUGS"
+.IX Header "REPORTING BUGS"
+Please report all bugs to <jschulz@bloonix.de>.
+.PP
+You can send me additional informations generated by a script if you like.
+The script should lie under the Linus\-Statistics\-<version>/tests/ directory
+and it called ProcCheck.pl. This script generates an output for all statistics
+with Data::Dumper and an output of all necessary files from the /proc filesystem.
+Take a look into this script and take care that it only generates data from
+this files. The output file called output_proc_check.txt.
 .SH "AUTHOR"
 .IX Header "AUTHOR"
-Jonny Schulz. Please report all bugs to <jschulz@bloonix.de>.
+Jonny Schulz <jschulz@bloonix.de>.
 .SH "COPYRIGHT"
 .IX Header "COPYRIGHT"
 Copyright (c) 2005, 2006 by Jonny Schulz. All rights reserved.
