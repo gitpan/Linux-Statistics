@@ -4,6 +4,18 @@ use Fcntl qw(:DEFAULT :flock);
 use Linux::Statistics;
 use Data::Dumper;
 
+print "\nThis little script is written for the issue that you want to report bugs to\n";
+print "the author of this module. It generates the file output_proc_check.txt with a\n";
+print "lot of helpful informations.\n\n";
+print "Do you want to generate this output? (y|n) ";
+
+chomp(my $answer = <STDIN>);
+
+exit unless $answer eq 'y';
+
+print "\nMany thanks for your strives :-)\n";
+print "Please send the output to <jschulz\@bloonix.de>.\n\n";
+
 sysopen(STDOUT,"output_proc_check.txt",O_WRONLY | O_EXCL | O_APPEND | O_CREAT) or die $!;
 sysopen(STDERR,"output_proc_check.txt",O_WRONLY | O_APPEND) or die $!;
 sysopen(WARNING,"output_proc_check.txt",O_WRONLY | O_APPEND) or die $!;
@@ -24,7 +36,7 @@ my $obj = Linux::Statistics->new( SysInfo   => 1,
                                   DiskUsage => 1,
                                   LoadAVG   => 1,
                                   Processes => 1,
-                                  TimePoint => 1 );
+                                  TimeStamp => 1 );
 
 sleep(1);
 

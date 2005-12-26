@@ -14,7 +14,7 @@ my %Options = (
    18 => 'DiskUsage',
    19 => 'LoadAVG',
    20 => 'Processes',
-   21 => 'TimePoint',
+   21 => 'TimeStamp',
 );
 
 unless (@ARGV && $ARGV[0] =~ /^\d+$/ && $Options{$ARGV[0]}) {

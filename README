@@ -6,225 +6,228 @@ SYNOPSIS
 
 use Linux::Statistics;
 
-$obj = Linux::Statistics->new( SysInfo   => 1,
-                               ProcStats => 1,
-                               MemStats  => 1,
-                               PgSwStats => 1,
-                               NetStats  => 1,
-                               SockStats => 1,
-                               DiskStats => 1,
-                               DiskUsage => 1,
-                               LoadAVG   => 1,
-                               Processes => 1,
-                               TimePoint => 1 );
+my $obj = Linux::Statistics->new( SysInfo   => 1,
+                                  ProcStats => 1,
+                                  MemStats  => 1,
+                                  PgSwStats => 1,
+                                  NetStats  => 1,
+                                  SockStats => 1,
+                                  DiskStats => 1,
+                                  DiskUsage => 1,
+                                  LoadAVG   => 1,
+                                  Processes => 1,
+                                  TimeStamp => 1 );
 
-sleep($sec);
+sleep(1);
 
-$stats = $obj->getStats;
+my $stats = $obj->getStats;
 
 DESCRIPTION
 
 This module collects system statistics like processor workload, memory usage and other
 system informations from the /proc filesystem. It is tested on x86 hardware with the
 distributions SuSE, SLES (s390 and s390x), Red Hat, Debian and Mandrake on kernel versions
-2.4 and 2.6 but it should also running on other linux distributions with the same kernel
+2.4 and 2.6 but should also running on other linux distributions with the same kernel
 release number. To run this module it is necessary to start it as root or another user
 with the authorization to read the /proc filesystem and the /etc/passwd file.
 
-NOTE THAT ...
+NOTE
 
-it is necessary to sleep for at least of one second between the calls of new() and getStats()
-if you want to get useful statistics for ProcStats, NetStats, DiskStats and PgSwStats. If you
-start some statistics for ProcStats you should do that in any case, otherwise you can get a
-message like this:
+The method new() checks the options and initialize different statitistics if they're required.
+If you want to get useful statistics for the options ProcStats, NetStats, DiskStats, PgSwStats
+and Processes then it's necessary to sleep for a while - at least one second - between the calls
+of new() and getStats(). If you shouldn't do that it's possible that this statistics will be null.
+The reason is that this statistics are deltas since the last time that the new method was called
+and the call of getStats().
 
-Illegal division by zero at ...
-
-The reason is that this statistics are deltas since the last time that the new method was called.
+The getStats() function collects the requested informations and actualize the initalized values.
+This way making it possible that the method new() doesn't must called again and again if you want
+to collect the statistics in a loop. The exception is that you must call the method new() if you
+want to add or remove a option.
 
 OPTIONS
 
-All options returns a hash reference with the collected system informations.
+All options returns a multidimensional hash as a reference with the collected system informations.
 
 SysInfo
 
 Generated from /proc/sys/kernel/hostname *domainname *ostype *osrelease *version
 and /proc/sysinfo, /proc/cpuinfo, /proc/meminfo, /proc/uptime.
 
-   SysHostname           -  This is the host name.
-   SysDomain             -  This is the host domain name.
-   SysKernel             -  This is the kernel name.
-   SysRelease            -  This is the release number.
-   SysVersion            -  This is the version number.
-   SysMemTotal           -  The total size of memory.
-   SysSwapTotal          -  The total size of swap space.
-   SysCPU_Power          -  The power of the CPUs in mhz or bogomips.
-   SysCountCPUs          -  The total number of CPUs.
-   SysModelName          -  The model name.
-   SysUptime             -  This is the uptime of the system.
-   SysIdleTime           -  This is the idle time of the system idletime.
+   Hostname        -  This is the host name.
+   Domain          -  This is the host domain name.
+   Kernel          -  This is the kernel name.
+   Release         -  This is the release number.
+   Version         -  This is the version number.
+   MemTotal        -  The total size of memory.
+   SwapTotal       -  The total size of swap space.
+   CPU_Power       -  The power of the CPUs in mhz or bogomips.
+   CountCPUs       -  The total number of CPUs.
+   ModelName       -  The model name.
+   Uptime          -  This is the uptime of the system.
+   IdleTime        -  This is the idle time of the system idletime.
 
 ProcStats
 
 Generated from /proc/stat.
 
-   ProcUser              -  Percentage of CPU utilization at the user level.
-   ProcNice              -  Percentage of CPU utilization at the user level with nice priority.
-   ProcSystem            -  Percentage of CPU utilization at the system level.
-   ProcIdle              -  Percentage of time the CPU is in idle state.
-   ProcIOWait            -  Percentage of time the CPU is in idle state because an i/o operation is waiting for a disk.
-   ProcTotal             -  Total percentage of CPU utilization at user and system level.
-   ProcNew               -  Number of new processes that were produced per second.
+   User            -  Percentage of CPU utilization at the user level.
+   Nice            -  Percentage of CPU utilization at the user level with nice priority.
+   System          -  Percentage of CPU utilization at the system level.
+   Idle            -  Percentage of time the CPU is in idle state.
+   IOWait          -  Percentage of time the CPU is in idle state because an i/o operation is waiting for a disk.
+   Total           -  Total percentage of CPU utilization at user and system level.
+   New             -  Number of new processes that were produced per second.
 
 MemStats
 
 Generated from /proc/meminfo.
 
-   MemUsed               -  Total size of used memory in kilobytes.
-   MemFree               -  Total size of free memory in kilobytes.
-   MemUsedPro            -  Total size of used memory in percent.
-   MemTotal              -  Total size of memory in kilobytes.
-   MemBuffers            -  Total size of buffers used from memory in kilobytes.
-   MemCached             -  Total size of cached memory in kilobytes.
-   MemSwapUsed           -  Total size of swap space is used is kilobytes.
-   MemSwapFree           -  Total size of swap space is free in kilobytes.
-   MemSwapUsedPro        -  Total size of swap space is used in percent.
-   MemSwapTotal          -  Total size of swap space in kilobytes.
+   MemUsed         -  Total size of used memory in kilobytes.
+   MemFree         -  Total size of free memory in kilobytes.
+   MemUsedFree     -  Total size of used memory in percent.
+   MemTotal        -  Total size of memory in kilobytes.
+   Buffers         -  Total size of buffers used from memory in kilobytes.
+   Cached          -  Total size of cached memory in kilobytes.
+   SwapUsed        -  Total size of swap space is used is kilobytes.
+   SwapFree        -  Total size of swap space is free in kilobytes.
+   SwapUsedPro     -  Total size of swap space is used in percent.
+   SwapTotal       -  Total size of swap space in kilobytes.
 
 PgSwStats
 
 Generated from /proc/stat or /proc/vmstat.
 
-   PageIn                -  Number of kilobytes the system has paged in from disk per second.
-   PageOut               -  Number of kilobytes the system has paged out to disk per second.
-   SwapIn                -  Number of kilobytes the system has swapped in from disk per second.
-   SwapOut               -  Number of kilobytes the system has swapped out to disk per second.
+   PageIn          -  Number of kilobytes the system has paged in from disk per second.
+   PageOut         -  Number of kilobytes the system has paged out to disk per second.
+   SwapIn          -  Number of kilobytes the system has swapped in from disk per second.
+   SwapOut         -  Number of kilobytes the system has swapped out to disk per second.
 
 NetStats
 
 Generated from /proc/net/dev.
 
-   NetRxBytes            -  Number of bytes received per second.
-   NetRxPackets          -  Number of packets received per second.
-   NetRxErrs             -  Number of errors that happend per second while received packets.
-   NetRxDrop             -  Number of packets that were dropped per second.
-   NetRxFifo             -  Number of FIFO overruns that happend per second on received packets.
-   NetRxFrame            -  Number of carrier errors that happend per second on received packets.
-   NetRxCompr            -  Number of compressed packets received per second.
-   NetRxMulti            -  Number of multicast packets received per second.
-   NetTxBytes            -  Number of bytes transmitted per second.
-   NetTxPacktes          -  Number of packets transmitted per second.
-   NetTxErrs             -  Number of errors that happend while transmitting packets.
-   NetTxDrop             -  Number of packets that were dropped per second.
-   NetTxFifo             -  Number of FIFO overruns that happend per second on transmitted packets.
-   NetTxColls            -  Number of collisions that were detected.
-   NetTxCarr             -  Number of carrier errors that happend per second on transmitted packets.
-   NetTxCompr            -  Number of compressed packets transmitted per second.
+   RxBytes         -  Number of bytes received per second.
+   RxPackets       -  Number of packets received per second.
+   RxErrs          -  Number of errors that happend per second while received packets.
+   RxDrop          -  Number of packets that were dropped per second.
+   RxFifo          -  Number of FIFO overruns that happend per second on received packets.
+   RxFrame         -  Number of carrier errors that happend per second on received packets.
+   RxCompr         -  Number of compressed packets received per second.
+   RxMulti         -  Number of multicast packets received per second.
+   TxBytes         -  Number of bytes transmitted per second.
+   TxPacktes       -  Number of packets transmitted per second.
+   TxErrs          -  Number of errors that happend while transmitting packets.
+   TxDrop          -  Number of packets that were dropped per second.
+   TxFifo          -  Number of FIFO overruns that happend per second on transmitted packets.
+   TxColls         -  Number of collisions that were detected.
+   TxCarr          -  Number of carrier errors that happend per second on transmitted packets.
+   TxCompr         -  Number of compressed packets transmitted per second.
 
 NetStatsSum
 
    This are just some summaries of NetStats.
 
-   NetRxBytes            -  Total number of bytes received per second.
-   NetTxBytes            -  Total number of bytes transmitted per second.
+   RxBytes         -  Total number of bytes received per second.
+   TxBytes         -  Total number of bytes transmitted per second.
 
 SockStats
 
 Generated from /proc/net/sockstat.
 
-   SockTotalSockets      -  Total number of used sockets.
-   SockTcpSockets        -  Number of tcp sockets in use.
-   SockUdpSockets        -  Number of udp sockets in use.
-   SockRawSockets        -  Number of raw sockets in use.
-   SockIpFrag            -  Number of ip fragments in use.
+   Used            -  Total number of used sockets.
+   Tcp             -  Number of tcp sockets in use.
+   Udp             -  Number of udp sockets in use.
+   Raw             -  Number of raw sockets in use.
+   IpFrag          -  Number of ip fragments in use.
 
 DiskStats
 
 Generated from /proc/diskstats or /proc/partitions.
 
-   DiskMajor             -  The mayor number of the disk
-   DiskMinor             -  The minor number of the disk
-   DiskReadRequests      -  Number of read requests that were made per second to physical disk.
-   DiskReadBytes         -  Number of bytes that were read per second from physical disk.
-   DiskWriteRequests     -  Number of write requests that were made per second to physical disk.
-   DiskWriteBytes        -  Number of bytes that were written per second to physical disk.
-   DiskTotalRequests     -  Total number of requests were made per second from/to physical disk.
-   DiskTotalBytes        -  Total number of bytes transmitted per second from/to physical disk.
+   Major           -  The mayor number of the disk
+   Minor           -  The minor number of the disk
+   ReadRequests    -  Number of read requests that were made per second to physical disk.
+   ReadBytes       -  Number of bytes that were read per second from physical disk.
+   WriteRequests   -  Number of write requests that were made per second to physical disk.
+   WriteBytes      -  Number of bytes that were written per second to physical disk.
+   TotalRequests   -  Total number of requests were made per second from/to physical disk.
+   TotalBytes      -  Total number of bytes transmitted per second from/to physical disk.
 
 DiskStatsSum
 
    This are just some summaries of DiskStats.
 
-   DiskReadRequests      -  Total number of read requests were made per second to all physical disks.
-   DiskReadBytes         -  Total number of bytes reads per second from all physical disks.
-   DiskWriteRequests     -  Total number of write requests were made per second to all physical disks.
-   DiskWriteBytes        -  Total number of bytes written per second to all physical disks.
-   DiskRequests          -  Total number of requests were made per second from/to all physical disks.
-   DiskBytes             -  Total number of bytes transmitted per second from/to all physical disks.
+   ReadRequests    -  Total number of read requests were made per second to all physical disks.
+   ReadBytes       -  Total number of bytes reads per second from all physical disks.
+   WriteRequests   -  Total number of write requests were made per second to all physical disks.
+   WriteBytes      -  Total number of bytes written per second to all physical disks.
+   Requests        -  Total number of requests were made per second from/to all physical disks.
+   Bytes           -  Total number of bytes transmitted per second from/to all physical disks.
 
 DiskUsage
 
 Generated with I</bin/df -k>.
 
-   DiskU_Total           -  The total size of the disk.
-   DiskU_Usage           -  The used disk space in kilobytes.
-   DiskU_Free            -  The free disk space in kilobytes.
-   DiskU_UsagePro        -  The used disk space in percent.
-   DiskU_MountPoint      -  The moint point of the disk.
+   Total           -  The total size of the disk.
+   Usage           -  The used disk space in kilobytes.
+   Free            -  The free disk space in kilobytes.
+   UsagePro        -  The used disk space in percent.
+   MountPoint      -  The moint point of the disk.
 
 LoadAVG
 
 Generated with /proc/loadavg.
 
-   ProcAVG_1             -  The average processor workload of the last minute.
-   ProcAVG_5             -  The average processor workload of the last five minutes.
-   ProcAVG_15            -  The average processor workload of the last fifteen minutes.
-   ProcRunQueue          -  The number of processes waiting for runtime.
-   ProcCount             -  The total amount of processes on the system.
+   AVG_1           -  The average processor workload of the last minute.
+   AVG_5           -  The average processor workload of the last five minutes.
+   AVG_15          -  The average processor workload of the last fifteen minutes.
+   RunQueue        -  The number of processes waiting for runtime.
+   Count           -  The total amount of processes on the system.
 
 Processes
 
 Generated with /proc/<number>/statm, /proc/<number>/stat, /proc/<number>/status, /proc/<number>/cmdline and /etc/passwd.
 
-   sProcPPid             -  The parent process ID of the process.
-   sProcOwner            -  The owner name of the process.
-   sProcState            -  The status of the process.
-   sProcPGrp             -  The group ID of the process.
-   sProcSession          -  The session ID of the process.
-   sProcTTYnr            -  The tty the process use.
-   sProcMinFLT           -  The number of minor faults the process made per second.
-   sProcCMinFLT          -  The number of minor faults the child process made per second.
-   sProcMayFLT           -  The number of mayor faults the process made per second.
-   sProcCMayFLT          -  The number of mayor faults the child process made per second.
-   sProcCUTime           -  The number of jiffies the process waited for childrens have been scheduled in user mode.
-   sProcSTime            -  The number of jiffies the process have beed scheduled in kernel mode.
-   sProcUTime            -  The number of jiffies the process have beed scheduled in user mode.
-   sProcCSTime           -  The number of jiffies the process waited for childrens have been scheduled in kernel mode.
-   sProcPrior            -  The priority of the process (+15).
-   sProcNice             -  The nice level of the process.
-   sProcStartTime        -  The time in jiffies the process started after system boot.
-   sProcATime            -  The time in D:H:M (days, hours, minutes) the process is active.
-   sProcVSize            -  The size of virtual memory of the process.
-   sProcNSwap            -  The size of swap space of the process.
-   sProcCNSwap           -  The size of swap space of the childrens of the process.
-   sProcProc             -  The CPU number the process was last executed on.
-   sProcSize             -  The total program size of the process.
-   sProcResident         -  Number of resident set size, this includes the text, data and stack space.
-   sProcShare            -  Total size of shared pages of the process.
-   sProcTRS              -  Total text size of the process.
-   sProcDRS              -  Total data/stack size of the process.
-   sProcLRS              -  Total library size of the process.
-   sProcDT               -  Total size of dirty pages of the process (unused since kernel 2.6).
-   sProcComm             -  Command of the process.
-   sProcCMDLINE          -  Command line of the process.
-   sProcPid              -  The process ID.
+   PPid            -  The parent process ID of the process.
+   Owner           -  The owner name of the process.
+   State           -  The status of the process.
+   PGrp            -  The group ID of the process.
+   Session         -  The session ID of the process.
+   TTYnr           -  The tty the process use.
+   MinFLT          -  The number of minor faults the process made per second.
+   CMinFLT         -  The number of minor faults the child process made per second.
+   MayFLT          -  The number of mayor faults the process made per second.
+   CMayFLT         -  The number of mayor faults the child process made per second.
+   CUTime          -  The number of jiffies the process waited for childrens have been scheduled in user mode.
+   STime           -  The number of jiffies the process have beed scheduled in kernel mode.
+   UTime           -  The number of jiffies the process have beed scheduled in user mode.
+   CSTime          -  The number of jiffies the process waited for childrens have been scheduled in kernel mode.
+   Prior           -  The priority of the process (+15).
+   Nice            -  The nice level of the process.
+   StartTime       -  The time in jiffies the process started after system boot.
+   ActiveTime      -  The time in D:H:M (days, hours, minutes) the process is active.
+   VSize           -  The size of virtual memory of the process.
+   NSwap           -  The size of swap space of the process.
+   CNSwap          -  The size of swap space of the childrens of the process.
+   CPU             -  The CPU number the process was last executed on.
+   Size            -  The total program size of the process.
+   Resident        -  Number of resident set size, this includes the text, data and stack space.
+   Share           -  Total size of shared pages of the process.
+   TRS             -  Total text size of the process.
+   DRS             -  Total data/stack size of the process.
+   LRS             -  Total library size of the process.
+   DT              -  Total size of dirty pages of the process (unused since kernel 2.6).
+   Comm            -  Command of the process.
+   CMDLINE         -  Command line of the process.
+   Pid             -  The process ID.
 
-TimePoint
+TimeStamp
 
 Generated with localtime(time).
 
-   Date                  -  The current date.
-   Time                  -  The current time.
+   Date            -  The current date.
+   Time            -  The current time.
 
 EXAMPLES
 
@@ -238,14 +241,14 @@ A very simple perl script could looks like this:
          sleep(1);
          my $stats = $obj->getStats;
 
-         print "Report/Statistic for ProcStats\n";
-         print "  ProcUser      $stats->{ProcStats}->{ProcUser}\n";
-         print "  ProcNice      $stats->{ProcStats}->{ProcNice}\n";
-         print "  ProcSystem    $stats->{ProcStats}->{ProcSystem}\n";
-         print "  ProcIdle      $stats->{ProcStats}->{ProcIdle}\n";
-         print "  ProcIOWait    $stats->{ProcStats}->{ProcIOWait}\n";
-         print "  ProcTotal     $stats->{ProcStats}->{ProcTotal}\n";
-         print "  ProcNew       $stats->{ProcStats}->{ProcNew}\n";
+         print "Statistics for ProcStats\n";
+         print "  User      $stats->{ProcStats}->{User}\n";
+         print "  Nice      $stats->{ProcStats}->{Nice}\n";
+         print "  System    $stats->{ProcStats}->{System}\n";
+         print "  Idle      $stats->{ProcStats}->{Idle}\n";
+         print "  IOWait    $stats->{ProcStats}->{IOWait}\n";
+         print "  Total     $stats->{ProcStats}->{Total}\n";
+         print "  New       $stats->{ProcStats}->{New}\n";
 
 Or this:
 
@@ -253,7 +256,7 @@ Or this:
          use strict;
          use Linux::Statistics;
 
-         my $obj   = Linux::Statistics->new( NetStats => 1 );
+         my $obj = Linux::Statistics->new( NetStats => 1 );
          sleep(1);
          my $stats = $obj->getStats;
 
@@ -261,14 +264,14 @@ Or this:
             print "Statistics for device $device ...\n";
 
             while (my ($key,$value) = each %{$stats->{NetStats}->{$device}}) {
-               print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\n";
+               print ' ' x 2, "$key", ' ' x (30-length($key)), "$value\n";
             }
          }
 
          print "\nTotal network statistics ...\n";
 
          while (my ($key,$value) = each %{$stats->{NetStatsSum}}) {
-            print ' ' x 2 . "$key" . ' ' x (30-length($key)) . "$value\n";
+            print ' ' x 2, "$key", ' ' x (30-length($key)), "$value\n";
          }
 
 This also:
@@ -277,38 +280,61 @@ This also:
          use strict;
          use Linux::Statistics;
 
-         my $obj   = Linux::Statistics->new( Processes => 1 );
+         my $obj = Linux::Statistics->new( Processes => 1 );
+         sleep(1);
          my $stats = $obj->getStats;
 
-         # print a formated header
-
-         print "$_". ' ' x (12-length($_)) for qw(PID PPID OWNER STATE SIZE VSIZE COMMAND);
+         print "$_", ' ' x (12-length($_)) for qw(Pid PPid Owner State Size VSize CMDLINE);
          print "\n";
 
          foreach my $pid (keys %{$stats->{Processes}}) {
-            print "$stats->{Processes}->{$pid}->{$_}". ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
-               for qw(sProcPid sProcPPid sProcOwner sProcState sProcSize sProcVSize sProcCMDLINE);
+            print "$stats->{Processes}->{$pid}->{$_}", ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
+               for qw(Pid PPid Owner State Size VSize CMDLINE);
+            print "\n";
+         }
+
+You can also collect the statistics in a loop:
+
+         #!/usr/bin/perl -w
+         use strict;
+         use Linux::Statistics;
+
+         $| = 1;
+
+         my $obj   = Linux::Statistics->new( ProcStats => 1, TimeStamp => 1 );
+
+         print "Report/Statistic for ProcStats\n";
+         print ' ' x (8-length($_)), "$_" for qw(Time User Nice System Idle IOWait Total New);
+         print "\n";
+
+         while (1) {
+            sleep(1);
+            my $stats = $obj->getStats;
+
+            print "$stats->{TimeStamp}->{Time}";
+            print ' ' x (8-length($stats->{ProcStats}->{$_})), "$stats->{ProcStats}->{$_}" for keys %{$stats->{ProcStats}};
             print "\n";
          }
 
 It is also possible to create a hash reference with options.
 
-      $options = {
-         SysInfo   => 1,
-         ProcStats => 1,
-         MemStats  => 1,
-         PgSwStats => 1,
-         NetStats  => 1,
-         SockStats => 1,
-         DiskStats => 1,
-         DiskUsage => 1,
-         LoadAVG   => 1,
-         Processes => 1,
-         TimePoint => 1
-      };
+         my $options = {
+            SysInfo   => 1,
+            ProcStats => 1,
+            MemStats  => 1,
+            PgSwStats => 1,
+            NetStats  => 1,
+            SockStats => 1,
+            DiskStats => 1,
+            DiskUsage => 1,
+            LoadAVG   => 1,
+            Processes => 1,
+            TimeStamp => 1
+         };
 
-      $obj   = Linux::Statistics->new( $options );
-      $stats = $obj->getStats;
+         my $obj = Linux::Statistics->new( $options );
+         sleep(1);
+         my $stats = $obj->getStats;
 
 If you're not sure you can use the the Data::Dumper module to learn more about the hash structure.
 
@@ -317,7 +343,8 @@ If you're not sure you can use the the Data::Dumper module to learn more about t
          use Linux::Statistics;
          use Data::Dumper;
 
-         my $obj   = Linux::Statistics->new( Processes => 1 );
+         my $obj = Linux::Statistics->new( Processes => 1 );
+         sleep(1);
          my $stats = $obj->getStats;
 
          print Dumper($stats);
