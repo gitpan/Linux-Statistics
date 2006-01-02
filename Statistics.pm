@@ -389,7 +389,7 @@ use strict;
 require Exporter;
 our @ISA     = qw(Exporter);
 our @EXPORT  = qw(new getStats);
-our $VERSION = '1.10';
+our $VERSION = '1.11';
 
 # Disk statictics are since 2.4 kernel found in /proc/partitions, but since
 # kernel 2.6 this statistics are now in /proc/diskstats. Further the paging
@@ -648,7 +648,7 @@ sub ProcStats {
 
    while (<STAT>) {
       if (/^cpu\s+(.*)$/) {
-         @stat{qw/User Nice System Idle IOWait/} = split /\s+/, $1;
+         @stat{qw(User Nice System Idle IOWait)} = split /\s+/, $1;
 
          # IOWait is only set as fifth parameter
          # by kernel versions higher than 2.4
@@ -686,9 +686,9 @@ sub PgSwStats {
 
    while (<STAT>) {
       if (/^page (\d+) (\d+)$/) {
-         @stat{qw/PageIn PageOut/} = ($1, $2);
+         @stat{qw(PageIn PageOut)} = ($1, $2);
       } elsif (/^swap (\d+) (\d+)$/) {
-         @stat{qw/SwapIn SwapOut/} = ($1, $2);
+         @stat{qw(SwapIn SwapOut)} = ($1, $2);
       }
    }
 
@@ -846,7 +846,7 @@ sub DiskUsage {
    while (<DFK>) {
       s/%//g;
 
-      if (/^(.+?)\s+(.*)$/) {
+      if (/^(.+?)\s+(.+)$/ && !$disk_name) {
          @{$disk_usage{$1}}{qw(Total Usage Free UsagePro MountPoint)} = (split /\s+/, $2)[0..4];
       } elsif (/^(.+?)\s*$/ && !$disk_name) {
          # it can be that the disk name is to long and the rest

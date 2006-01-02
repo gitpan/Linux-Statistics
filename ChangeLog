@@ -1,3 +1,5 @@
+1.11	Released at 2006-01-02.
+	Fixed a bug of the function DiskUsage.
 1.10	Released at 2005-12-26.
 	Make a jump to 1.10 because there are to many changes.
 	Changed all keys. Remove the leading aliases Proc,
@@ -5,7 +7,7 @@
 	  ProcProc to ProcCPU of Processes. The keys MinFLT,
 	  CMinFLT, MayFLT, CMayFLT, UTime, STime, CUTime and
 	  CSTime are now added to the initialized values to
-	  calculate the average. For this step I addes the
+	  calculate the average. For this step I added the
 	  function initProcesses().
 	Did a lot of syntax improvements.
 1.02	Released at 2005-12-23.
