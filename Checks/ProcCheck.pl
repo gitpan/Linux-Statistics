@@ -35,6 +35,7 @@ my $obj = Linux::Statistics->new( SysInfo   => 1,
                                   DiskStats => 1,
                                   DiskUsage => 1,
                                   LoadAVG   => 1,
+                                  FileStats => 1,
                                   Processes => 1,
                                   TimeStamp => 1 );
 
@@ -63,6 +64,9 @@ my @file = (
    '/proc/sys/kernel/ostype',
    '/proc/sys/kernel/osrelease',
    '/proc/sys/kernel/version',
+   '/proc/sys/fs/file-nr',
+   '/proc/sys/fs/inode-nr',
+   '/proc/sys/fs/dentry-state'
 );
 
 foreach my $file (@file) {

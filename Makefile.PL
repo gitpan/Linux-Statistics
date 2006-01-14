@@ -3,6 +3,6 @@ use ExtUtils::MakeMaker;
 # the contents of the Makefile that is written.
 WriteMakefile(
     'NAME'              => 'Linux::Statistics',
-    'VERSION_FROM'      => 'Statistics.pm',
-    'PREREQ_PM'         => {},
+    'VERSION_FROM'      => 'lib/Linux/Statistics.pm',
+    'PREREQ_PM'         => {}
 );

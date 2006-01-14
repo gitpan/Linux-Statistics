@@ -1,3 +1,11 @@
+1.12	Released at 2006-01-14.
+	Did some syntax improvements in the DiskStats and
+	  getStats functions.
+	Added the FileStats function and actualize the manpage.
+	Added warnings.pm.
+	Added the directories t and lib/Linux.
+	Splitted the test.pl into 11 different *.t files and
+	   implement Test::More for all tests.
 1.11	Released at 2006-01-02.
 	Fixed a bug of the function DiskUsage.
 1.10	Released at 2005-12-26.
