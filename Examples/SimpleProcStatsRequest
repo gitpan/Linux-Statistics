@@ -1,0 +1,17 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Linux::Statistics;
+
+my $obj = Linux::Statistics->new( ProcStats => 1 );
+sleep(1);
+my $stats = $obj->getStats;
+
+print "Statistics for ProcStats\n";
+print "  User      $stats->{ProcStats}->{User}\n";
+print "  Nice      $stats->{ProcStats}->{Nice}\n";
+print "  System    $stats->{ProcStats}->{System}\n";
+print "  Idle      $stats->{ProcStats}->{Idle}\n";
+print "  IOWait    $stats->{ProcStats}->{IOWait}\n";
+print "  Total     $stats->{ProcStats}->{Total}\n";
+print "  New       $stats->{ProcStats}->{New}\n";

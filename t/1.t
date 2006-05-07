@@ -1,5 +1,5 @@
 use strict;
-use Test::More tests => 12;
+use Test::More tests => 10;
 use Linux::Statistics;
 
 my %SysInfo = (
@@ -10,9 +10,7 @@ my %SysInfo = (
       Version => undef,
       MemTotal => undef,
       SwapTotal => undef,
-      CPU_Power => undef,
       CountCPUs => undef,
-      ModelName => undef,
       Uptime => undef,
       IdleTime => undef,
 );

@@ -4,5 +4,8 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     'NAME'              => 'Linux::Statistics',
     'VERSION_FROM'      => 'lib/Linux/Statistics.pm',
-    'PREREQ_PM'         => {}
+    'ABSTRACT_FROM'     => 'lib/Linux/Statistics.pm',
+    'PREREQ_PM'         => {
+        'Test::More'    => '0',
+    }
 );

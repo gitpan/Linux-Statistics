@@ -1,0 +1,24 @@
+#!/usr/bin/perl
+use strict;
+use warnings;
+use Linux::Statistics;
+use Data::Dumper;
+
+my $stats = {};
+
+# remember... ProcStats(), PgSwStats(), NetStats(),
+# DiskStats() and Processes() are raw data and no deltas!
+
+for my $opt (qw(SysInfo ProcStats MemStats PgSwStats SockStats DiskUsage LoadAVG FileStats Processes)) {
+   $stats->{$opt} = Linux::Statistics->$opt;
+}
+
+# NetStats() and DiskStats() returns two hash references.
+
+for my $opt (qw(NetStats DiskStats)) {
+   ($stats->{$opt},$stats->{"${opt}Sum"}) = Linux::Statistics->$opt;
+}
+
+# have a look on the structure
+
+print Dumper($stats);

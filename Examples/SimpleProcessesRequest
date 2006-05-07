@@ -1,0 +1,16 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Linux::Statistics;
+
+my $obj = Linux::Statistics->new( Processes => 1 );
+sleep(1);
+my $stats = $obj->getStats;
+
+printf '%-12s', $_ for qw(Pid PPid Owner State Size VSize CMDLINE);
+print "\n";
+
+foreach my $pid (keys %{$stats->{Processes}}) {
+   printf '%-12s', $stats->{Processes}->{$pid}->{$_} for qw(Pid PPid Owner State Size VSize CMDLINE);
+   print "\n";
+}

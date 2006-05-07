@@ -1,8 +1,33 @@
+1.13	Released at 2006-05-07.
+	Formatting and actualize the documentation - thanks to SAPER
+	  for his report and patch. Did a bit more...
+	Changed the keys MemUsedPro and SwapUsedPro from MemStats
+	  to MemUsedPer and SwapUsedPer (Per = Percent). Further
+	  changed the key UsagePro from DiskStats to UsagePer.
+	  Thanks to Chris in this case - cheers :-)
+	Changed the keys fHandlesAlloc, fHandlesFree, fHandlesMax,
+	  iNodesAlloc, iNodesFree, iNodesMax to fhAlloc, fhFree, fhMax,
+	  inAlloc, inFree, inMax. I hope that was the last change of
+	  keys. I give me strives!
+	Fixed the bug in CountCPUs of SysStats - thanks to Albert
+	  Graham for his report. I don't know why I started the
+	  counting of CPUs with -1. Now it starts normal.
+	  Further I kicked the CPU_Power and ModelName of SysInfo,
+	  because the style of /proc/cpuinfo is to different on many
+	  architectures.
+	Did some syntax improvements. Closing filehandles and changed
+	  the %file keys hostname, domain, kernel, release and version
+	  to Hostname, Domain, Kernel, Release and Version to run it
+	  in a for-loop in SysInfo.
+	The functions new() and getStats() are not exported as default
+	   any more.
+	Added Examples/ and removed Checks/ directory. In Examples are
+	   now the most examples from the manpage.
 1.12	Released at 2006-01-14.
-	Did some syntax improvements in the DiskStats and
-	  getStats functions.
+	Did some syntax improvements in the DiskStats and getStats
+	  functions.
 	Added the FileStats function and actualize the manpage.
-	Added warnings.pm.
+	Added "use warnings;".
 	Added the directories t and lib/Linux.
 	Splitted the test.pl into 11 different *.t files and
 	   implement Test::More for all tests.
@@ -10,37 +35,34 @@
 	Fixed a bug of the function DiskUsage.
 1.10	Released at 2005-12-26.
 	Make a jump to 1.10 because there are to many changes.
-	Changed all keys. Remove the leading aliases Proc,
-	  Mem, Net, Disk, Disk_U, sProc and changed the key
-	  ProcProc to ProcCPU of Processes. The keys MinFLT,
-	  CMinFLT, MayFLT, CMayFLT, UTime, STime, CUTime and
-	  CSTime are now added to the initialized values to
-	  calculate the average. For this step I added the
-	  function initProcesses().
+	Changed all keys. Remove the leading aliases Proc, Mem, Net,
+	  Disk, Disk_U, sProc and changed the key ProcProc to ProcCPU
+	  of Processes. The keys MinFLT, CMinFLT, MayFLT, CMayFLT,
+	  UTime, STime, CUTime and CSTime are now added to the
+	  initialized values to calculate the average. For this step
+	  I added the function initProcesses().
 	Did a lot of syntax improvements.
 1.02	Released at 2005-12-23.
-	Added key sProcATime to Processes. This key shows the
-	  current total active time of a process. The time is
-	  given in DD:HH:MM (days:hours:minutes).
-	Added key SockIpFrag to SockStats. SockIpFrag means
-	  the IP fragments currently in use.
-	Added the "tests" directory with some scripts
-	  to test all options and that testers can sends a
-	  generated output by ProcCheck.pl if they detect
-	  some bugs.
+	Added key sProcATime to Processes. This key shows the current
+	  total active time of a process. The time is given in
+	  DD:HH:MM (days:hours:minutes).
+	Added key SockIpFrag to SockStats. SockIpFrag means the IP
+	  fragments currently in use.
+	Added the "tests" directory with some scripts to test all
+	  options and that testers can sends a generated output by
+	  ProcCheck.pl if they detect some bugs.
 	Did further syntax improvements in the most functions.
 	Time and date error solved.
-	A lot of thanks to the people of perl-community.de
-	  for they suggestions and improvements.
+	A lot of thanks to the people of perl-community.de for they
+	  suggestions and improvements.
 1.01	Released at 2005-12-22.
 	Added the method new().
 	Did some syntax improvements.
 	Enlarged the test.pl script.
-	Changed the keys NetSumStats and DiskSumStats
-	  to NetStatsSum and DiskStatsSum.
-	Thanks to David Serrano for his tipps about
-	  the ugly sleep(1) in the getStats function.
-	  I realized his suggestion in the new() method.
+	Changed the keys NetSumStats and DiskSumStats to NetStatsSum
+	  and DiskStatsSum.
+	Thanks to David Serrano for his tipps about the ugly sleep(1)
+	  in the getStats function. I realized his suggestion in the
+	  new() method.
 1.00	Released at 2005-12-21.
-x.xx	Thanks to Larry Wall and all other Perl developer
-	for Perl :-)
+x.xx	Thanks to Larry Wall and all other Perl developer for Perl :-)

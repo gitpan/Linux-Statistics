@@ -5,13 +5,13 @@ use Linux::Statistics;
 my %MemStats = (
    MemUsed => undef,
    MemFree => undef,
-   MemUsedPro => undef,
+   MemUsedPer => undef,
    MemTotal => undef,
    Buffers => undef,
    Cached => undef,
    SwapUsed => undef,
    SwapFree => undef,
-   SwapUsedPro => undef,
+   SwapUsedPer => undef,
    SwapTotal => undef,
 );
 

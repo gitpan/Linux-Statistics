@@ -1,59 +1,73 @@
 =head1 NAME
 
-Linux::Statistics - Collect system statistics.
+Linux::Statistics - Collect linux system statistics.
 
 =head1 SYNOPSIS
 
-use Linux::Statistics;
+    use Linux::Statistics;
 
-my $obj = Linux::Statistics->new( SysInfo   => 1,
-                                  ProcStats => 1,
-                                  MemStats  => 1,
-                                  PgSwStats => 1,
-                                  NetStats  => 1,
-                                  SockStats => 1,
-                                  DiskStats => 1,
-                                  DiskUsage => 1,
-                                  LoadAVG   => 1,
-                                  FileStats => 1,
-                                  Processes => 1,
-                                  TimeStamp => 1 );
+    my $obj = Linux::Statistics->new( SysInfo   => 1,
+                                      ProcStats => 1,
+                                      MemStats  => 1,
+                                      PgSwStats => 1,
+                                      NetStats  => 1,
+                                      SockStats => 1,
+                                      DiskStats => 1,
+                                      DiskUsage => 1,
+                                      LoadAVG   => 1,
+                                      FileStats => 1,
+                                      Processes => 1,
+                                      TimeStamp => 1 );
 
-sleep(1);
+    sleep(1);
 
-my $stats = $obj->getStats;
+    my $stats = $obj->getStats;
 
 =head1 DESCRIPTION
 
 This module collects system statistics like processor workload, memory usage and other
-system informations from the /proc filesystem. It is tested on x86 hardware with the
+system informations from the F</proc> filesystem. It is tested on x86 hardware with the
 distributions SuSE, SLES (s390 and s390x), Red Hat, Debian and Mandrake on kernel versions
 2.4 and 2.6 but should also running on other linux distributions with the same kernel
 release number. To run this module it is necessary to start it as root or another user
-with the authorization to read the /proc filesystem and the /etc/passwd file.
+with the authorization to read the F</proc> filesystem and the F</etc/passwd> file.
+
+=head1 STATISTICS
+
+All options are identical with the functions and returns a multidimensional hash as a reference with the
+collected system informations. There are two ways to collect the statistics. You can call the methods
+C<new()> and C<getStats()> to collect all necessary data at the same time F<or> you call the different
+functions in single steps, but note that the functions C<ProcStats()>, C<PgSwStats()>, C<NetStats()>,
+C<DiskStats()> and C<Processes()> will return raw data and no deltas.
+
+The functions C<SysInfo()>, C<MemStats()>, C<SockStats()>, C<DiskUsage()>, C<LoadAVG()> and C<FileStats()>
+are no deltas. If you need only one of this informations you don't need to call C<new()> and C<getStats()>.
+Note that the TimeStamp is not a function and only available if you call C<getStats()>.
+
+If you use the method C<new()>, it checks the options and initialize all statistics that are needed to
+calculate the deltas. The C<getStats()> function collects all requested informations, calculate the
+deltas and actualize the initalized values. This way making it possible that the method C<new()> doesn't
+must called again and again if you want to collect the statistics in a loop. The exception is that you must
+call the method C<new()> if you want to add or remove a option. In the near feature I think about a function
+to add options.
 
 =head2 NOTE
 
-The method new() checks the options and initialize different statitistics if they're required.
-If you want to get useful statistics for the options ProcStats, NetStats, DiskStats, PgSwStats
-and Processes then it's necessary to sleep for a while - at least one second - between the calls
-of new() and getStats(). If you shouldn't do that it's possible that this statistics will be null.
-The reason is that this statistics are deltas since the last time that the new method was called
-and the call of getStats().
+If you want to get useful statistics for the options C<ProcStats>, C<NetStats>, C<DiskStats>, C<PgSwStats>
+and C<Processes> then it's necessary to sleep for a while - at least one second - between the calls
+of C<new()> and C<getStats()>. If you shouldn't do that it's possible that this statistics will be null.
+The reason is that this statistics - remember - are deltas since the last time that the new method was
+called and the call of C<getStats()>. If you use a sleep interval for one or more seconds and some statistics
+be null then your system seems to have a low workload.
 
-The getStats() function collects the requested informations and actualize the initalized values.
-This way making it possible that the method new() doesn't must called again and again if you want
-to collect the statistics in a loop. The exception is that you must call the method new() if you
-want to add or remove a option.
+Have a lot of fun with this module :-)
 
-=head1 OPTIONS
+=head1 OPTIONS, FUNCTIONS
 
-All options returns a multidimensional hash as a reference with the collected system informations.
+=head2 SysInfo, C<SysInfo()>
 
-=head2 SysInfo
-
-Generated from I</proc/sys/kernel/hostname> *domainname *ostype *osrelease *version
-and I</proc/sysinfo>, I</proc/cpuinfo>, I</proc/meminfo>, I</proc/uptime>.
+Generated from F</proc/sys/kernel/{hostname,domainname,ostype,osrelease,version}>
+and F</proc/cpuinfo>, F</proc/meminfo>, F</proc/uptime>.
 
    Hostname        -  This is the host name.
    Domain          -  This is the host domain name.
@@ -62,15 +76,13 @@ and I</proc/sysinfo>, I</proc/cpuinfo>, I</proc/meminfo>, I</proc/uptime>.
    Version         -  This is the version number.
    MemTotal        -  The total size of memory.
    SwapTotal       -  The total size of swap space.
-   CPU_Power       -  The power of the CPUs in mhz or bogomips.
-   CountCPUs       -  The total number of CPUs.
-   ModelName       -  The model name.
+   CountCPUs       -  The total (maybe logical) number of CPUs.
    Uptime          -  This is the uptime of the system.
-   IdleTime        -  This is the idle time of the system idletime.
+   IdleTime        -  This is the idle time of the system.
 
-=head2 ProcStats
+=head2 ProcStats, C<ProcStats()>
 
-Generated from I</proc/stat>.
+Generated from F</proc/stat>.
 
    User            -  Percentage of CPU utilization at the user level.
    Nice            -  Percentage of CPU utilization at the user level with nice priority.
@@ -80,61 +92,61 @@ Generated from I</proc/stat>.
    Total           -  Total percentage of CPU utilization at user and system level.
    New             -  Number of new processes that were produced per second.
 
-=head2 MemStats
+=head2 MemStats, C<MemStats()>
 
 Generated from I</proc/meminfo>.
 
    MemUsed         -  Total size of used memory in kilobytes.
    MemFree         -  Total size of free memory in kilobytes.
-   MemUsedFree     -  Total size of used memory in percent.
+   MemUsedPer      -  Total size of used memory in percent.
    MemTotal        -  Total size of memory in kilobytes.
    Buffers         -  Total size of buffers used from memory in kilobytes.
    Cached          -  Total size of cached memory in kilobytes.
    SwapUsed        -  Total size of swap space is used is kilobytes.
    SwapFree        -  Total size of swap space is free in kilobytes.
-   SwapUsedPro     -  Total size of swap space is used in percent.
+   SwapUsedPer     -  Total size of swap space is used in percent.
    SwapTotal       -  Total size of swap space in kilobytes.
 
-=head2 PgSwStats
+=head2 PgSwStats, PgSwStats
 
-Generated from I</proc/stat> or I</proc/vmstat>.
+Generated from F</proc/stat> or F</proc/vmstat>.
 
-   PageIn          -  Number of kilobytes the system has paged in from disk per second.
-   PageOut         -  Number of kilobytes the system has paged out to disk per second.
-   SwapIn          -  Number of kilobytes the system has swapped in from disk per second.
-   SwapOut         -  Number of kilobytes the system has swapped out to disk per second.
+   PageIn          -  Number of kilobytes the system has paged in from disk.
+   PageOut         -  Number of kilobytes the system has paged out to disk.
+   SwapIn          -  Number of kilobytes the system has swapped in from disk.
+   SwapOut         -  Number of kilobytes the system has swapped out to disk.
 
-=head2 NetStats
+=head2 NetStats, C<NetStats()>
 
-Generated from I</proc/net/dev>.
+Generated from F</proc/net/dev>.
 
-   RxBytes         -  Number of bytes received per second.
-   RxPackets       -  Number of packets received per second.
-   RxErrs          -  Number of errors that happend per second while received packets.
-   RxDrop          -  Number of packets that were dropped per second.
-   RxFifo          -  Number of FIFO overruns that happend per second on received packets.
-   RxFrame         -  Number of carrier errors that happend per second on received packets.
-   RxCompr         -  Number of compressed packets received per second.
-   RxMulti         -  Number of multicast packets received per second.
-   TxBytes         -  Number of bytes transmitted per second.
-   TxPacktes       -  Number of packets transmitted per second.
+   RxBytes         -  Number of bytes received.
+   RxPackets       -  Number of packets received.
+   RxErrs          -  Number of errors that happend while received packets.
+   RxDrop          -  Number of packets that were dropped.
+   RxFifo          -  Number of FIFO overruns that happend on received packets.
+   RxFrame         -  Number of carrier errors that happend on received packets.
+   RxCompr         -  Number of compressed packets received.
+   RxMulti         -  Number of multicast packets received.
+   TxBytes         -  Number of bytes transmitted.
+   TxPacktes       -  Number of packets transmitted.
    TxErrs          -  Number of errors that happend while transmitting packets.
-   TxDrop          -  Number of packets that were dropped per second.
-   TxFifo          -  Number of FIFO overruns that happend per second on transmitted packets.
+   TxDrop          -  Number of packets that were dropped.
+   TxFifo          -  Number of FIFO overruns that happend on transmitted packets.
    TxColls         -  Number of collisions that were detected.
-   TxCarr          -  Number of carrier errors that happend per second on transmitted packets.
-   TxCompr         -  Number of compressed packets transmitted per second.
+   TxCarr          -  Number of carrier errors that happend on transmitted packets.
+   TxCompr         -  Number of compressed packets transmitted.
 
 =head2 NetStatsSum
 
-   This are just some summaries of NetStats.
+   This are just some summaries of NetStats/C<NetStats()>.
 
-   RxBytes         -  Total number of bytes received per second.
-   TxBytes         -  Total number of bytes transmitted per second.
+   RxBytes         -  Total number of bytes received.
+   TxBytes         -  Total number of bytes transmitted.
 
-=head2 SockStats
+=head2 SockStats, C<SockStats()>
 
-Generated from I</proc/net/sockstat>.
+Generated from F</proc/net/sockstat>.
 
    Used            -  Total number of used sockets.
    Tcp             -  Number of tcp sockets in use.
@@ -142,43 +154,43 @@ Generated from I</proc/net/sockstat>.
    Raw             -  Number of raw sockets in use.
    IpFrag          -  Number of ip fragments in use.
 
-=head2 DiskStats
+=head2 DiskStats, C<DiskStats()>
 
-Generated from I</proc/diskstats> or I</proc/partitions>.
+Generated from F</proc/diskstats> or F</proc/partitions>.
 
    Major           -  The mayor number of the disk
    Minor           -  The minor number of the disk
-   ReadRequests    -  Number of read requests that were made per second to physical disk.
-   ReadBytes       -  Number of bytes that were read per second from physical disk.
-   WriteRequests   -  Number of write requests that were made per second to physical disk.
-   WriteBytes      -  Number of bytes that were written per second to physical disk.
-   TotalRequests   -  Total number of requests were made per second from/to physical disk.
-   TotalBytes      -  Total number of bytes transmitted per second from/to physical disk.
+   ReadRequests    -  Number of read requests that were made to physical disk.
+   ReadBytes       -  Number of bytes that were read from physical disk.
+   WriteRequests   -  Number of write requests that were made to physical disk.
+   WriteBytes      -  Number of bytes that were written to physical disk.
+   TotalRequests   -  Total number of requests were made from/to physical disk.
+   TotalBytes      -  Total number of bytes transmitted from/to physical disk.
 
 =head2 DiskStatsSum
 
-   This are just some summaries of DiskStats.
+   This are just some summaries of DiskStats/C<DiskStats()>.
 
-   ReadRequests    -  Total number of read requests were made per second to all physical disks.
-   ReadBytes       -  Total number of bytes reads per second from all physical disks.
-   WriteRequests   -  Total number of write requests were made per second to all physical disks.
-   WriteBytes      -  Total number of bytes written per second to all physical disks.
-   Requests        -  Total number of requests were made per second from/to all physical disks.
-   Bytes           -  Total number of bytes transmitted per second from/to all physical disks.
+   ReadRequests    -  Total number of read requests were made to all physical disks.
+   ReadBytes       -  Total number of bytes reads from all physical disks.
+   WriteRequests   -  Total number of write requests were made to all physical disks.
+   WriteBytes      -  Total number of bytes written to all physical disks.
+   Requests        -  Total number of requests were made from/to all physical disks.
+   Bytes           -  Total number of bytes transmitted from/to all physical disks.
 
-=head2 DiskUsage
+=head2 DiskUsage, C<DiskUsage()>
 
-Generated with I</bin/df -k>.
+Generated with F</bin/df -k>.
 
    Total           -  The total size of the disk.
    Usage           -  The used disk space in kilobytes.
    Free            -  The free disk space in kilobytes.
-   UsagePro        -  The used disk space in percent.
+   UsagePer        -  The used disk space in percent.
    MountPoint      -  The moint point of the disk.
 
-=head2 LoadAVG
+=head2 LoadAVG, C<LoadAVG()>
 
-Generated with I</proc/loadavg>.
+Generated with F</proc/loadavg>.
 
    AVG_1           -  The average processor workload of the last minute.
    AVG_5           -  The average processor workload of the last five minutes.
@@ -186,24 +198,25 @@ Generated with I</proc/loadavg>.
    RunQueue        -  The number of processes waiting for runtime.
    Count           -  The total amount of processes on the system.
 
-=head2 FileStats
+=head2 FileStats, C<FileStats()>
 
-Generated with I</proc/sys/fs/file-nr>, I</proc/sys/fs/inode-nr> and I</proc/sys/fs/dentry-state>.
+Generated with F</proc/sys/fs/file-nr>, F</proc/sys/fs/inode-nr> and F</proc/sys/fs/dentry-state>.
 
-   fHandlesAlloc   -  Number of allocated file handles.
-   fHandlesFree    -  Number of free file handles.
-   fHandlesMax     -  Number of maximum file handles.
-   iNodesAlloc     -  Number of allocated inodes.
-   iNodesFree      -  Number of free inodes.
-   iNodesMax       -  Number of maximum inodes.
+   fhAlloc         -  Number of allocated file handles.
+   fhFree          -  Number of free file handles.
+   fhMax           -  Number of maximum file handles.
+   inAlloc         -  Number of allocated inodes.
+   inFree          -  Number of free inodes.
+   inMax           -  Number of maximum inodes.
    Dentries        -  Dirty directory cache entries.
    Unused          -  Free diretory cache size.
    AgeLimit        -  Time in seconds the dirty cache entries can be reclaimed.
    WantPages       -  Pages that are requested by the system when memory is short.
 
-=head2 Processes
+=head2 Processes, C<Processes()>
 
-Generated with I</proc/E<lt>numberE<gt>/statm>, I</proc/E<lt>numberE<gt>/stat>, I</proc/E<lt>numberE<gt>/status>, I</proc/E<lt>numberE<gt>/cmdline> and I</etc/passwd>.
+Generated with F</proc/E<lt>numberE<gt>/statm>, F</proc/E<lt>numberE<gt>/stat>,
+F</proc/E<lt>numberE<gt>/status>, F</proc/E<lt>numberE<gt>/cmdline> and F</etc/passwd>.
 
    PPid            -  The parent process ID of the process.
    Owner           -  The owner name of the process.
@@ -211,10 +224,10 @@ Generated with I</proc/E<lt>numberE<gt>/statm>, I</proc/E<lt>numberE<gt>/stat>, 
    PGrp            -  The group ID of the process.
    Session         -  The session ID of the process.
    TTYnr           -  The tty the process use.
-   MinFLT          -  The number of minor faults the process made per second.
-   CMinFLT         -  The number of minor faults the child process made per second.
-   MayFLT          -  The number of mayor faults the process made per second.
-   CMayFLT         -  The number of mayor faults the child process made per second.
+   MinFLT          -  The number of minor faults the process made.
+   CMinFLT         -  The number of minor faults the child process made.
+   MayFLT          -  The number of mayor faults the process made.
+   CMayFLT         -  The number of mayor faults the child process made.
    CUTime          -  The number of jiffies the process waited for childrens have been scheduled in user mode.
    STime           -  The number of jiffies the process have beed scheduled in kernel mode.
    UTime           -  The number of jiffies the process have beed scheduled in user mode.
@@ -238,22 +251,26 @@ Generated with I</proc/E<lt>numberE<gt>/statm>, I</proc/E<lt>numberE<gt>/stat>, 
    CMDLINE         -  Command line of the process.
    Pid             -  The process ID.
 
-=head2 TimeStamp
+=head2 TimeStamp (the time stamp is only available if you call the function C<getStats()>)
 
-Generated with I<localtime(time)>.
+Generated with C<localtime(time)>.
 
    Date            -  The current date.
    Time            -  The current time.
 
 =head1 EXAMPLES
 
-=head4 A very simple perl script could looks like this:
+You can find very a simple script for tests under F<Linux-Statistics-1.13/Examples/>.
+The script calls F<SimpleCheck> and shows you the collected data with C<Data::Dumper>.
+The following examples lie under F<Linux-Statistics-1.13/Examples/> as well.
 
-         #!/usr/bin/perl -w
+A very simple perl script could looks like this:
+
+         use warnings;
          use strict;
          use Linux::Statistics;
 
-         my $obj   = Linux::Statistics->new( ProcStats => 1 );
+         my $obj = Linux::Statistics->new( ProcStats => 1 );
          sleep(1);
          my $stats = $obj->getStats;
 
@@ -266,9 +283,9 @@ Generated with I<localtime(time)>.
          print "  Total     $stats->{ProcStats}->{Total}\n";
          print "  New       $stats->{ProcStats}->{New}\n";
 
-=head4 Or this:
+Example to collect network statistics with a nice output:
 
-         #!/usr/bin/perl -w
+         use warnings;
          use strict;
          use Linux::Statistics;
 
@@ -276,23 +293,31 @@ Generated with I<localtime(time)>.
          sleep(1);
          my $stats = $obj->getStats;
 
-         foreach my $device (keys %{$stats->{NetStats}}) {
-            print "Statistics for device $device ...\n";
+         my @list = qw( RxBytes  RxPackets  RxErrs   RxDrop
+                        RxFifo   RxFrame    RxCompr  RxMulti
+                        TxBytes  TxPacktes  TxErrs   TxDrop
+                        TxFifo   TxColls    TxCarr   TxCompr );
 
-            while (my ($key,$value) = each %{$stats->{NetStats}->{$device}}) {
-               print ' ' x 2, "$key", ' ' x (30-length($key)), "$value\n";
-            }
+         print ' ' x 6;
+         printf '%12s', $_ for @list;
+         print "\n";
+
+         foreach my $device (keys %{$stats->{NetStats}}) {
+            printf '%-6s', $device;
+            printf '%12s', $stats->{NetStats}->{$device}->{$_} for @list;
+            print "\n";
          }
 
-         print "\nTotal network statistics ...\n";
+         print "\nTotal network statistics:\n";
 
          while (my ($key,$value) = each %{$stats->{NetStatsSum}}) {
-            print ' ' x 2, "$key", ' ' x (30-length($key)), "$value\n";
+            printf '  %-12s', $key;
+            printf '%12s', "$value\n";
          }
 
-=head4 This also:
+Example to show a process list:
 
-         #!/usr/bin/perl -w
+         use warnings;
          use strict;
          use Linux::Statistics;
 
@@ -300,27 +325,26 @@ Generated with I<localtime(time)>.
          sleep(1);
          my $stats = $obj->getStats;
 
-         print "$_", ' ' x (12-length($_)) for qw(Pid PPid Owner State Size VSize CMDLINE);
+         printf '%-12s', $_ for qw(Pid PPid Owner State Size VSize CMDLINE);
          print "\n";
 
          foreach my $pid (keys %{$stats->{Processes}}) {
-            print "$stats->{Processes}->{$pid}->{$_}", ' ' x (12-length($stats->{Processes}->{$pid}->{$_}))
-               for qw(Pid PPid Owner State Size VSize CMDLINE);
+            printf '%-12s', $stats->{Processes}->{$pid}->{$_} for qw(Pid PPid Owner State Size VSize CMDLINE);
             print "\n";
          }
 
-=head4 You can also collect the statistics in a loop:
+You can collect the statistics in a loop as well:
 
-         #!/usr/bin/perl -w
+         use warnings;
          use strict;
          use Linux::Statistics;
 
          $| = 1;
 
-         my $obj   = Linux::Statistics->new( ProcStats => 1, TimeStamp => 1 );
+         my $obj = Linux::Statistics->new( ProcStats => 1, TimeStamp => 1 );
 
          print "Report/Statistic for ProcStats\n";
-         print ' ' x (8-length($_)), "$_" for qw(Time User Nice System Idle IOWait Total New);
+         printf '%8s', $_ for qw(Time User Nice System Idle IOWait Total New);
          print "\n";
 
          while (1) {
@@ -328,11 +352,11 @@ Generated with I<localtime(time)>.
             my $stats = $obj->getStats;
 
             print "$stats->{TimeStamp}->{Time}";
-            print ' ' x (8-length($stats->{ProcStats}->{$_})), "$stats->{ProcStats}->{$_}" for keys %{$stats->{ProcStats}};
+            printf '%8s', $stats->{ProcStats}->{$_} for keys %{$stats->{ProcStats}};
             print "\n";
          }
 
-=head4 It is also possible to create a hash reference with options.
+It is possible to create a hash reference with options as well:
 
          my $options = {
             SysInfo   => 1,
@@ -346,49 +370,70 @@ Generated with I<localtime(time)>.
             LoadAVG   => 1,
             FileStats => 1,
             Processes => 1,
-            TimeStamp => 1
+            TimeStamp => 1,
          };
 
          my $obj = Linux::Statistics->new( $options );
          sleep(1);
          my $stats = $obj->getStats;
 
-=head4 If you're not sure you can use the the Data::Dumper module to learn more about the hash structure.
+If you're not sure you can use the the C<Data::Dumper> module to learn more about the hash structure:
 
-         #!/usr/bin/perl -w
+         use warnings;
          use strict;
          use Linux::Statistics;
          use Data::Dumper;
 
-         my $obj = Linux::Statistics->new( Processes => 1 );
+         my $obj = Linux::Statistics->new( ProcStats => 1 );
          sleep(1);
          my $stats = $obj->getStats;
 
          print Dumper($stats);
 
-=head4 You can find a very simple script for tests under the installation directory
-Linux-Statistics-<version>/tests/. The script called SimpleCheck.pl and shows you the collected
-data with Data::Dumper.
+One simple example for the call without C<new()> and C<getStats()>:
 
-=head4 Have a lot of fun with this module :-)
+         use strict;
+         use warnings;
+         use Linux::Statistics;
+         use Data::Dumper;
+
+         my $stats = {};
+
+         # remember... ProcStats(), PgSwStats(), NetStats(),
+         # DiskStats() and Processes() are raw data and no deltas!
+
+         for my $opt (qw(SysInfo ProcStats MemStats PgSwStats SockStats DiskUsage LoadAVG FileStats Processes)) {
+            $stats->{$opt} = Linux::Statistics->$opt;
+         }
+
+         # NetStats() and DiskStats() returns two hash references.
+
+         for my $opt (qw(NetStats DiskStats)) {
+            ($stats->{$opt},$stats->{"${opt}Sum"}) = Linux::Statistics->$opt;
+         }
+
+         # have a look on the structure
+
+         print Dumper($stats);
+
+=head1 EXPORTS
+
+No exports.
 
 =head1 SEE ALSO
 
-The manpage of proc(5) or I</usr/src/linux/Documentation/filesystems/proc.txt>.
+B<proc(5)>
+
+F</usr/src/linux/Documentation/filesystems/proc.txt>
 
 =head1 REPORTING BUGS
 
 Please report all bugs to <jschulz@bloonix.de>.
 
-You can send me additional informations generated by a script if you like.
-The script lie under the Linus-Statistics-<VERSION>/Checks/ directory and it
-called ProcCheck.pl. This script generates an output for all statistics
-with Data::Dumper and an output of all necessary files from the /proc filesystem.
-The output file called output_proc_check.txt.
-
 =head1 EXPANSIONS
 
-If there are statistics you need but not generated by this module please send me an email.
+If there are statistics you need but not generated by this module please send me an email
+with your wishs or a function ready to built in :-).
 
 =head1 AUTHOR
 
@@ -407,10 +452,7 @@ package Linux::Statistics;
 
 use strict;
 use warnings;
-require Exporter;
-our @ISA     = qw(Exporter);
-our @EXPORT  = qw(new getStats);
-our $VERSION = '1.12';
+our $VERSION = '1.13';
 
 # Disk statictics are since 2.4 kernel found in /proc/partitions, but since
 # kernel 2.6 this statistics are now in /proc/diskstats. Further the paging
@@ -431,11 +473,11 @@ my %file = (
    diskstats  => '/proc/diskstats',
    partitions => '/proc/partitions',
    uptime     => '/proc/uptime',
-   hostname   => '/proc/sys/kernel/hostname',
-   domain     => '/proc/sys/kernel/domainname',
-   kernel     => '/proc/sys/kernel/ostype',
-   release    => '/proc/sys/kernel/osrelease',
-   version    => '/proc/sys/kernel/version',
+   Hostname   => '/proc/sys/kernel/hostname',
+   Domain     => '/proc/sys/kernel/domainname',
+   Kernel     => '/proc/sys/kernel/ostype',
+   Release    => '/proc/sys/kernel/osrelease',
+   Version    => '/proc/sys/kernel/version',
    file_nr    => '/proc/sys/fs/file-nr',
    inode_nr   => '/proc/sys/fs/inode-nr',
    dentries   => '/proc/sys/fs/dentry-state'
@@ -464,7 +506,9 @@ sub new {
       if ($opt =~ /^(ProcStats|PgSwStats)$/) {
          $self{istat}{$opt} = &$opt();
       } elsif ($opt =~ /^Processes$/) {
-         $self{istat}{uptime} = (split /\s+/, <FU>)[0] if open FU,'<',$file{uptime};
+         open FU,'<',$file{uptime} or die "Statistics: can't open $file{uptime}";
+         $self{istat}{uptime} = (split /\s+/, <FU>)[0];
+         close FU;
          $self{istat}{$opt} = initProcesses();
       } elsif ($opt =~ /^(NetStats|DiskStats)$/) {
          ($self{istat}{$opt},$self{istat}{"${opt}Sum"}) = &$opt();
@@ -496,7 +540,9 @@ sub getStats {
    }
 
    if ($options->{Processes}) {
-      my $uptime = (split /\s+/, <FU>)[0] if open FU,'<',$file{uptime};
+      open FU,'<',$file{uptime} or die "Statistics: can't open $file{uptime}";
+      my $uptime = (split /\s+/, <FU>)[0];
+      close FU;
       $istat->{uptime} = $uptime - $istat->{uptime};
       $rstat->{Processes} = Processes();
       my $r_stat = $rstat->{Processes};
@@ -512,8 +558,7 @@ sub getStats {
                $r_stat->{$pid}->{$key}  = sprintf('%.2f', $r_stat->{$pid}->{$key} / $istat->{uptime}) if $r_stat->{$pid}->{$key} > 0;
                $i_stat->{$pid}->{$key}  = $tmp;
             }
-         }
-         else {
+         } else {
             # we initialize the new process
             for my $key (qw(MinFLT CMinFLT MayFLT CMayFLT UTime STime CUTime CSTime StartTime)) {
                $i_stat->{$pid}->{$key} = $r_stat->{$pid}->{$key};
@@ -574,12 +619,12 @@ sub getStats {
 
 sub SysInfo {
    my %sys;
-   $sys{Hostname} = <FH> if open FH,'<',$file{hostname} or die "Statistics: can't open $file{hostname}"; close FH;
-   $sys{Domain}   = <FD> if open FD,'<',$file{domain}   or die "Statistics: can't open $file{domain}"; close FD;
-   $sys{Kernel}   = <FK> if open FK,'<',$file{kernel}   or die "Statistics: can't open $file{kernel}"; close FK;
-   $sys{Release}  = <FR> if open FR,'<',$file{release}  or die "Statistics: can't open $file{release}"; close FR;
-   $sys{Version}  = <FV> if open FV,'<',$file{version}  or die "Statistics: can't open $file{version}"; close FV;
-   my $uptime     = <FU> if open FU,'<',$file{uptime}   or die "Statistics: can't open $file{uptime}"; close FU;
+
+   for (qw(Hostname Domain Kernel Release Version)) {
+      open FH,'<',$file{$_} or die "Statistics: can't open $file{$_}";
+      $sys{$_} = <FH>;
+      close FH;
+   }
 
    open FM,'<',$file{meminfo} or die "Statistics: can't open $file{meminfo}";
    while (<FM>) {
@@ -591,52 +636,21 @@ sub SysInfo {
    }
    close FM;
 
-   if (open FS,'<',$file{sysinfo}) {
-      my $ctrlp = ();
-      my $type  = ();
-
-      while (<FS>) {
-         $ctrlp = $1 if /^VM00 Control Program:\s+(.*)/;
-         $type  = $1 if /^Type:\s+(\d+)/;
+   $sys{CountCPUs} = 0;
+   open FC,'<',$file{cpuinfo} or die  die "Statistics: can't open $file{cpuinfo}";
+   while (<FC>) {
+      if (/^processor\s*:\s*\d+/) {            # x86
+         $sys{CountCPUs}++;
+      } elsif (/^# processors\s*:\s*(\d+)/) {  # s390
+         $sys{CountCPUs} = $1;
+         last;
       }
-      close FS;
-
-      open FC,'<',$file{cpuinfo} or die "Statistics: can't open $file{cpuinfo}";
-      while (<FC>) {
-         $sys{CPU_Power} = "$2 $1" if /^(bogomips per cpu): (\d+)/;
-         $sys{CountCPUs} = $1      if /^# processors\s+: (\d+)/;
-         $sys{ModelName} = $1      if /^vendor_id\s+: (.*)/;
-      }
-
-      $sys{ModelName} = "$sys{ModelName}, $type, $ctrlp" if $type && $ctrlp;
-      close FC;
    }
-   elsif (open FC,'<',$file{cpuinfo}) {
-      --$sys{CountCPUs};
+   close FC;
 
-      while (<FC>) {
-         $sys{CountCPUs}++     if /^processor\s+:/;
-         $sys{ModelName} = $1  if /^model name\s+: (.*)/;
-         $sys{CPU_Cache} = $1  if /^cache size\s+: (.*)/;
+   open FU,'<',$file{uptime} or die "Statistics: can't open $file{uptime}";
 
-         if (/^cpu MHz\s+: (.*)/) {
-            if ($sys{CPU_Power}) {
-               $sys{CPU_Power} = "$sys{CPU_Power}, $1 MHz";
-            } elsif (defined $sys{CPU_Power}) {
-               $sys{CPU_Power} = "$1 MHz";
-            } else {
-               $sys{CPU_Power} = 0;
-            }
-         }
-      }
-
-      close FC;
-   }
-   else {
-      die "Statistics: can't open $file{sysinfo} or $file{cpuinfo}";
-   }
-
-   foreach (split /\s+/, $uptime) {
+   foreach (split /\s+/, <FU>) {
       my $s = sprintf('%li',$_);
       my $d = 0;
       my $h = 0;
@@ -653,6 +667,8 @@ sub SysInfo {
 
       $sys{IdleTime} = "${d}d ${h}h ${m}m ${s}s";
    }
+
+   close FU;
 
    foreach my $key (keys %sys) {
       chomp $sys{$key};
@@ -693,9 +709,9 @@ sub MemStats {
    close MEM;
 
    $mem{MemUsed}     = sprintf('%u',$mem{MemTotal} - $mem{MemFree});
-   $mem{MemUsedPro}  = sprintf('%.2f',100 * $mem{MemUsed} / $mem{MemTotal});
+   $mem{MemUsedPer}  = sprintf('%.2f',100 * $mem{MemUsed} / $mem{MemTotal});
    $mem{SwapUsed}    = sprintf('%u',$mem{SwapTotal} - $mem{SwapFree});
-   $mem{SwapUsedPro} = sprintf('%.2f',100 * $mem{SwapUsed} / $mem{SwapTotal});
+   $mem{SwapUsedPer} = sprintf('%.2f',100 * $mem{SwapUsed} / $mem{SwapTotal});
 
    return \%mem;
 }
@@ -830,7 +846,6 @@ sub DiskStats {
             $sum{Bytes}         += $x->{TotalBytes};
          }
       }
-
       close DISK;
    }
    elsif (open DISK,'<',$file{partitions}) {
@@ -871,15 +886,15 @@ sub DiskUsage {
       s/%//g;
 
       if (/^(.+?)\s+(.+)$/ && !$disk_name) {
-         @{$disk_usage{$1}}{qw(Total Usage Free UsagePro MountPoint)} = (split /\s+/, $2)[0..4];
+         @{$disk_usage{$1}}{qw(Total Usage Free UsagePer MountPoint)} = (split /\s+/, $2)[0..4];
       } elsif (/^(.+?)\s*$/ && !$disk_name) {
          # it can be that the disk name is to long and the rest
-         # of the disk information are in the next line ...
+         # of the disk informations are in the next line ...
          $disk_name = $1;
       } elsif (/^\s+(.*)$/ && $disk_name) {
          # this line should contain the rest informations for the
          # disk name that we stored in the last loop
-         @{$disk_usage{$disk_name}}{qw(Total Usage Free UsagePro MountPoint)} = (split /\s+/, $1)[0..4];
+         @{$disk_usage{$disk_name}}{qw(Total Usage Free UsagePer MountPoint)} = (split /\s+/, $1)[0..4];
          undef $disk_name;
       } else {
          # okay, it should never be the issue that we get a
@@ -918,12 +933,12 @@ sub FileStats {
    my %fstat;
 
    open FNR,'<',$file{file_nr} or die "Statistics can't open $file{file_nr}";
-   @fstat{qw(fHandlesAlloc fHandlesFree fHandlesMax)} = (split /\s+/, <FNR>)[0..2];
+   @fstat{qw(fhAlloc fhFree fhMax)} = (split /\s+/, <FNR>)[0..2];
    close FNR;
 
    open INR,'<',$file{inode_nr} or die "Statistics can't open $file{inode_nr}";
-   @fstat{qw(iNodesAlloc iNodesFree)} = (split /\s+/, <INR>)[0..1];
-   $fstat{iNodesMax} = $fstat{iNodesAlloc} + $fstat{iNodesFree};
+   @fstat{qw(inAlloc inFree)} = (split /\s+/, <INR>)[0..1];
+   $fstat{inMax} = $fstat{inAlloc} + $fstat{inFree};
    close INR;
 
    open DENT,'<',$file{dentries} or die "Statistics can't open $file{dentries}";
@@ -976,7 +991,9 @@ sub Processes {
 
    close PWD;
 
-   my $uptime = (split /\s+/, <FU>)[0] if open FU,'<',$file{uptime};
+   open FU,'<',$file{uptime} or die "Statistics: can't open $file{uptime}";
+   my $uptime = (split /\s+/, <FU>)[0];
+   close FU;
 
    foreach my $pid (@prc) {
 

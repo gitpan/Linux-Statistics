@@ -7,7 +7,7 @@ my %DiskUsage = (
    Total => undef,
    Usage => undef,
    Free => undef,
-   UsagePro => undef,
+   UsagePer => undef,
    MountPoint => undef,
 );
 

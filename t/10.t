@@ -3,12 +3,12 @@ use Test::More tests => 10;
 use Linux::Statistics;
 
 my %FileStats = (
-   fHandlesAlloc => undef,
-   fHandlesFree => undef,
-   fHandlesMax => undef,
-   iNodesAlloc => undef,
-   iNodesFree => undef,
-   iNodesMax => undef,
+   fhAlloc => undef,
+   fhFree => undef,
+   fhMax => undef,
+   inAlloc => undef,
+   inFree => undef,
+   inMax => undef,
    Dentries => undef,
    Unused => undef,
    AgeLimit => undef,

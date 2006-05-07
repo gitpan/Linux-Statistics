@@ -1,0 +1,30 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Linux::Statistics;
+
+my $obj = Linux::Statistics->new( NetStats => 1 );
+sleep(1);
+my $stats = $obj->getStats;
+
+my @list = qw( RxBytes  RxPackets  RxErrs   RxDrop
+               RxFifo   RxFrame    RxCompr  RxMulti
+               TxBytes  TxPacktes  TxErrs   TxDrop
+               TxFifo   TxColls    TxCarr   TxCompr );
+
+print ' ' x 6;
+printf '%12s', $_ for @list;
+print "\n";
+
+foreach my $device (keys %{$stats->{NetStats}}) {
+   printf '%-6s', $device;
+   printf '%12s', $stats->{NetStats}->{$device}->{$_} for @list;
+   print "\n";
+}
+
+print "\nTotal network statistics:\n";
+
+while (my ($key,$value) = each %{$stats->{NetStatsSum}}) {
+   printf '  %-12s', $key;
+   printf '%12s', "$value\n";
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/perl
+use warnings;
+use strict;
+use Linux::Statistics;
+use Data::Dumper;
+
+my $obj = Linux::Statistics->new( ProcStats => 1 );
+sleep(1);
+my $stats = $obj->getStats;
+
+print Dumper($stats);
