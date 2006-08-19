@@ -9,7 +9,7 @@ my $stats = $obj->getStats;
 
 my @list = qw( RxBytes  RxPackets  RxErrs   RxDrop
                RxFifo   RxFrame    RxCompr  RxMulti
-               TxBytes  TxPacktes  TxErrs   TxDrop
+               TxBytes  TxPackets  TxErrs   TxDrop
                TxFifo   TxColls    TxCarr   TxCompr );
 
 print ' ' x 6;

@@ -8,7 +8,7 @@ $| = 1;
 my $obj = Linux::Statistics->new( ProcStats => 1, TimeStamp => 1 );
 
 print "Report/Statistic for ProcStats\n";
-printf '%8s', $_ for qw(Time User Nice System Idle IOWait Total New);
+printf '%8s', $_ for qw(Time User System Total Nice IOWait Idle New);
 print "\n";
 
 while (1) {
@@ -16,6 +16,6 @@ while (1) {
    my $stats = $obj->getStats;
 
    print "$stats->{TimeStamp}->{Time}";
-   printf '%8s', $stats->{ProcStats}->{$_} for keys %{$stats->{ProcStats}};
+   printf '%8s', $stats->{ProcStats}->{$_} for qw(User System Total Nice IOWait Idle New);
    print "\n";
 }

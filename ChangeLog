@@ -1,3 +1,10 @@
+1.14	Released at 2005-08-19.
+	Fixed the typo TxPacktes to TxPackets in the NetStats section.
+	Fixed the global use of filehandles.
+	Fixed the DiskUsage section. The text header of the "df -k"
+	  isn't put out any more.
+	Fixed the example script NonStopProcStatsRequest. The script prints
+	  a wrong header.
 1.13	Released at 2006-05-07.
 	Formatting and actualize the documentation - thanks to SAPER
 	  for his report and patch. Did a bit more...
