@@ -456,7 +456,7 @@ package Linux::Statistics;
 
 use strict;
 use warnings;
-our $VERSION = '1.14';
+our $VERSION = '1.15';
 
 # Disk statictics are since 2.4 kernel found in /proc/partitions, but since
 # kernel 2.6 this statistics are now in /proc/diskstats. Further the paging
@@ -717,7 +717,13 @@ sub MemStats {
    $mem{MemUsed}     = sprintf('%u',$mem{MemTotal} - $mem{MemFree});
    $mem{MemUsedPer}  = sprintf('%.2f',100 * $mem{MemUsed} / $mem{MemTotal});
    $mem{SwapUsed}    = sprintf('%u',$mem{SwapTotal} - $mem{SwapFree});
-   $mem{SwapUsedPer} = sprintf('%.2f',100 * $mem{SwapUsed} / $mem{SwapTotal});
+
+   # thanks to lance for his bug report! i never thought that swap total could be null :-)
+   if ($mem{SwapTotal} == 0) {
+      $mem{SwapUsedPer} = 0;
+   } else {
+      $mem{SwapUsedPer} = sprintf('%.2f',100 * $mem{SwapUsed} / $mem{SwapTotal});
+   }
 
    return \%mem;
 }
@@ -853,7 +859,7 @@ sub DiskStats {
       close $fhd;
    } elsif (open my $fhp, '<', $file{partitions}) {
       while (defined (my $line = <$fhp>)) {
-         tr/A-Z/a-z/;
+         $line =~ tr/A-Z/a-z/;
          next unless $line =~ /^\s+(\d+)\s+(\d+)\s+\d+\s+(\w+)\s+(\d+)\s+\d+\s+(\d+)\s+\d+\s+(\d+)\s+(\d+)\s+\d+\s+\d+\s+\d+\s+\d+\s+\d+$/ && $4 && $6;
          for my $x ($disk{$3}) {
             $x->{Major}          = $1;
