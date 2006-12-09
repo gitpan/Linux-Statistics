@@ -1,6 +1,6 @@
 =head1 NAME
 
-Linux::Statistics - Collect linux system statistics.
+Linux::Statistics - Collect linux system statistics (deprecated).
 
 =head1 SYNOPSIS
 
@@ -82,7 +82,7 @@ and F</proc/cpuinfo>, F</proc/meminfo>, F</proc/uptime>.
 
 =head2 ProcStats, C<ProcStats()>
 
-Generated from F</proc/stat>.
+Generated from F</proc/stat> for each cpu (cpu0, cpu1 ...). F<cpu> without a number is the summary.
 
    User            -  Percentage of CPU utilization at the user level.
    Nice            -  Percentage of CPU utilization at the user level with nice priority.
@@ -90,7 +90,6 @@ Generated from F</proc/stat>.
    Idle            -  Percentage of time the CPU is in idle state.
    IOWait          -  Percentage of time the CPU is in idle state because an i/o operation is waiting for a disk.
    Total           -  Total percentage of CPU utilization at user and system level.
-   New             -  Number of new processes that were produced per second.
 
 =head2 MemStats, C<MemStats()>
 
@@ -197,6 +196,7 @@ Generated with F</proc/loadavg>.
    AVG_15          -  The average processor workload of the last fifteen minutes.
    RunQueue        -  The number of processes waiting for runtime.
    Count           -  The total amount of processes on the system.
+   New             -  Number of new processes that were produced per second (only for cpu summary).
 
 =head2 FileStats, C<FileStats()>
 
@@ -274,14 +274,14 @@ A very simple perl script could looks like this:
          sleep(1);
          my $stats = $obj->getStats;
 
-         print "Statistics for ProcStats\n";
-         print "  User      $stats->{ProcStats}->{User}\n";
-         print "  Nice      $stats->{ProcStats}->{Nice}\n";
-         print "  System    $stats->{ProcStats}->{System}\n";
-         print "  Idle      $stats->{ProcStats}->{Idle}\n";
-         print "  IOWait    $stats->{ProcStats}->{IOWait}\n";
-         print "  Total     $stats->{ProcStats}->{Total}\n";
-         print "  New       $stats->{ProcStats}->{New}\n";
+         print "Total statistics for ProcStats\n";
+         print "  User      $stats->{ProcStats}->{cpu}->{User}\n";
+         print "  Nice      $stats->{ProcStats}->{cpu}->{Nice}\n";
+         print "  System    $stats->{ProcStats}->{cpu}->{System}\n";
+         print "  Idle      $stats->{ProcStats}->{cpu}->{Idle}\n";
+         print "  IOWait    $stats->{ProcStats}->{cpu}->{IOWait}\n";
+         print "  Total     $stats->{ProcStats}->{cpu}->{Total}\n";
+         print "  New       $stats->{ProcStats}->{cpu}->{New}\n";
 
 Example to collect network statistics with a nice output:
 
@@ -352,7 +352,7 @@ You can collect the statistics in a loop as well:
             my $stats = $obj->getStats;
 
             print "$stats->{TimeStamp}->{Time}";
-            printf '%8s', $stats->{ProcStats}->{$_} for qw(User System Total Nice IOWait Idle New);
+            printf '%8s', $stats->{ProcStats}->{cpu}->{$_} for qw(User System Total Nice IOWait Idle New);
             print "\n";
          }
 
@@ -428,7 +428,7 @@ F</usr/src/linux/Documentation/filesystems/proc.txt>
 
 =head1 REPORTING BUGS
 
-Please report all bugs to <jschulz@bloonix.de>.
+Please report all bugs to <jschulz(at)bloonix.de>.
 
 =head1 EXPANSIONS
 
@@ -441,7 +441,7 @@ fine if you contact me and we looks for a solution.
 
 =head1 AUTHOR
 
-Jonny Schulz <jschulz@bloonix.de>.
+Jonny Schulz <jschulz(at)bloonix.de>.
 
 =head1 COPYRIGHT
 
@@ -456,7 +456,7 @@ package Linux::Statistics;
 
 use strict;
 use warnings;
-our $VERSION = '1.15';
+our $VERSION = '1.16';
 
 # Disk statictics are since 2.4 kernel found in /proc/partitions, but since
 # kernel 2.6 this statistics are now in /proc/diskstats. Further the paging
@@ -580,23 +580,34 @@ sub getStats {
       $rstat->{$opt} = &$opt() if $options->{$opt};
    }
 
-   for my $opt (qw(ProcStats PgSwStats)) {
-      if ($options->{$opt}) {
-         { no strict 'refs'; $rstat->{$opt} = &$opt(); }
+   if ($options->{PgSwStats}) {
+      $rstat->{PgSwStats} = &PgSwStats;
 
-         while (my ($x,$y) = each %{$rstat->{$opt}}) {
-            $rstat->{$opt}->{$x} -= $istat->{$opt}->{$x};
-            $istat->{$opt}->{$x}  = $y;
-         }
-         if ($opt eq 'ProcStats') {
-            foreach (qw(User Nice System Idle IOWait)) {
-               $rstat->{ProcStats}->{$_} = sprintf('%.2f',100 * $rstat->{ProcStats}->{$_} / $rstat->{ProcStats}->{Uptime})
-                  if $rstat->{ProcStats}->{$_};
-            }
+      while (my ($x,$y) = each %{$rstat->{PgSwStats}}) {
+         $rstat->{PgSwStats}->{$x} -= $istat->{PgSwStats}->{$x};
+         $istat->{PgSwStats}->{$x}  = $y;
+      }
+   }
 
-            $rstat->{ProcStats}->{Total} = $rstat->{ProcStats}->{User} + $rstat->{ProcStats}->{Nice} + $rstat->{ProcStats}->{System};
-            delete $rstat->{ProcStats}->{Uptime};
+   if ($options->{ProcStats}) {
+      $rstat->{ProcStats} = &ProcStats;
+
+      foreach my $cpu (keys %{$rstat->{ProcStats}}) {
+         my $rtmp = $rstat->{ProcStats}->{$cpu};
+         my $itmp = $istat->{ProcStats}->{$cpu};
+
+         while (my ($x,$y) = each %{$rtmp}) {
+            $rtmp->{$x} -= $itmp->{$x};
+            $itmp->{$x}  = $y;
          }
+
+         foreach (qw(User Nice System Idle IOWait)) {
+            $rtmp->{$_} = sprintf('%.2f',100 * $rtmp->{$_} / $rtmp->{Uptime})
+               if $rstat->{ProcStats}->{$_};
+         }
+
+         $rtmp->{Total} = $rtmp->{User} + $rtmp->{Nice} + $rtmp->{System};
+         delete $rtmp->{Uptime};
       }
    }
 
@@ -689,14 +700,14 @@ sub ProcStats {
    open my $fhp, '<', $file{stats} or die "Statistics: can't open $file{stats}";
 
    while (defined (my $line = <$fhp>)) {
-      if ($line =~ /^cpu\s+(.*)$/) {
-         @stat{qw(User Nice System Idle IOWait)} = split /\s+/, $1;
+      if ($line =~ /^(cpu.*?)\s+(.*)$/) {
+         @{$stat{$1}}{qw(User Nice System Idle IOWait)} = split /\s+/, $2;
          # IOWait is only set as fifth parameter
          # by kernel versions higher than 2.4
-         $stat{IOWait} = 0 unless defined $stat{IOWait};
-         $stat{Uptime} = $stat{User} + $stat{Nice} + $stat{System} + $stat{Idle} + $stat{IOWait};
+         $stat{$1}{IOWait} = 0 unless defined $stat{$1}{IOWait};
+         $stat{$1}{Uptime} = $stat{$1}{User} + $stat{$1}{Nice} + $stat{$1}{System} + $stat{$1}{Idle} + $stat{$1}{IOWait};
       } elsif ($line =~ /^processes (.*)/) {
-         $stat{New} = $1;
+         $stat{cpu}{New} = $1;
       }
    }
 
